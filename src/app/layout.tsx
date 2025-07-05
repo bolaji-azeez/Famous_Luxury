@@ -1,11 +1,15 @@
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+import React, { ReactNode } from "react";
+import "./globals.css";
+
+
+interface RootLayoutProps {
+  children: ReactNode;
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body cz-shortcut-listen="true">{children}</body>
     </html>
-  )
+  );
 }
