@@ -1,7 +1,7 @@
 "use client";
 import { Header } from "./static";
 import { Jost } from "next/font/google";
-
+import HeroSlider from "./components/web/heroslider";
 // Configure Jost with required weights/styles
 const jost = Jost({
   subsets: ["latin"],
@@ -12,8 +12,9 @@ const jost = Jost({
 
 export default function Page() {
   return (
-    <main className={`${jost.className}`} style={{ padding: "20px" }}>
+    <main className={`${jost.className}`}>
       <Header />
+      <HeroSlider />
     </main>
   );
 }
