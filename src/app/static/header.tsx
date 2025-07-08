@@ -147,7 +147,7 @@ const Header = () => {
   return (
     <header
       className={`fixed w-full z-50 transition-all duration-300 ${
-        state.isScrolled ? "bg-black/90 py-2" : "bg-transparent py-4"
+        state.isScrolled ? "bg-black/90 py-2" : "bg-green-950 py-4"
       }`}>
       <div className="container h-[80px] mx-auto px-4 sm:px-6 bg-transparent">
         <div className="flex justify-between items-center h-full">
