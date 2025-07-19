@@ -1,374 +1,231 @@
-"use client"
+"use client";
+import Image from "next/image";
+import { type FC, useState, useEffect , useRef} from "react";
 
-import type React from "react"
-
-import { useState, useRef, useEffect } from "react"
-import Image from "next/image"
-import { Heart, ArrowRight, ArrowLeft } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-
-interface Product {
-  id: number
-  name: string
-  description: string
-  price: number
-  image: string
-  hoverImage: string
-  isNew?: boolean
+interface ProductCard {
+  id: number;
+  title: string;
+  price: number;
+  oldPrice?: number;
+  image: string;
+  hoverImage?: string;
 }
 
-const NewArrivals = () => {
-  const [favorites, setFavorites] = useState<number[]>([])
-  const [startIndex, setStartIndex] = useState(0)
-  const [mobileSlide, setMobileSlide] = useState(0)
-  const [isMobile, setIsMobile] = useState(false)
-  const touchStartX = useRef<number>(0)
-  const touchEndX = useRef<number>(0)
+interface NewArrivalProps {
+  title?: string;
+}
 
-  const cardsPerPage = 4
-  const mobileCardsPerSlide = 2
+const sampleProducts: ProductCard[] = [
+  {
+    id: 1,
+    title: "Sunblast Solar Humid",
+    price: 19.12,
+    oldPrice: 29.99,
+    image: "/images/vintage.webp",
+    hoverImage:
+      "/images/dc3bdd3c05f257f5b216fc83a0a73794.png-removebg-preview.png",
+  },
+  {
+    id: 2,
+    title: "Cam Scope Natiopia",
+    price: 28.72,
+    oldPrice: 44.0,
+    image: "/images/vintage.webp",
+    hoverImage: "/placeholder.svg?height=400&width=320",
+  },
+  {
+    id: 3,
+    title: "Suspended Alexa Hula",
+    price: 29.0,
+    image: "/images/vintage.webp",
+    hoverImage: "/placeholder.svg?height=400&width=320",
+  },
+  {
+    id: 4,
+    title: "Juno Nexus Commodo Tool",
+    price: 29.0,
+    image: "/images/vintage.webp",
+    hoverImage: "/placeholder.svg?height=400&width=320",
+  },
+  {
+    id: 5,
+    title: "Digital Camera Pro",
+    price: 45.99,
+    oldPrice: 59.99,
+    image: "/images/vintage.webp",
+    hoverImage: "/placeholder.svg?height=400&width=320",
+  },
+  {
+    id: 6,
+    title: "Wireless Headphones",
+    price: 89.99,
+    image: "/images/vintage.webp",
+    hoverImage: "/placeholder.svg?height=400&width=320",
+  },
+  {
+    id: 7,
+    title: "Smart Watch Elite",
+    price: 199.99,
+    oldPrice: 249.99,
+    image: "/images/vintage.webp",
+    hoverImage: "/placeholder.svg?height=400&width=320",
+  },
+  {
+    id: 8,
+    title: "Bluetooth Speaker",
+    price: 39.99,
+    image: "/images/vintage.webp",
+    hoverImage: "/placeholder.svg?height=400&width=320",
+  },
+];
 
-  const products: Product[] = [
-    {
-      id: 1,
-      name: "Sartosea",
-      description: "Low boots - Palinated calf leather - Havane - Men",
-      price: 1795.0,
-      image: "/images/One.png",
-      hoverImage: "/placeholder.svg?height=400&width=400&text=Sartosea+Side+View",
-    },
-    {
-      id: 2,
-      name: "Retero",
-      description: "Sneakers - Grained calf leather - Cuivin - Men",
-      price: 895.0,
-      image: "/images/Two.png",
-      hoverImage: "/placeholder.svg?height=400&width=400&text=Retero+Back+View",
-      isNew: true,
-    },
-    {
-      id: 3,
-      name: "Chambellmoc",
-      description: "Loafers - Nubuck leather - Cuir - Men",
-      price: 1195.0,
-      image: "/images/Three.png",
-      hoverImage: "/placeholder.svg?height=400&width=400&text=Chambellmoc+Detail+View",
-      isNew: true,
-    },
-    {
-      id: 4,
-      name: "Naville",
-      description: "High boots - Pebbled leather - Noir - Men",
-      price: 2095.0,
-      image: "/images/Four.png",
-      hoverImage: "/placeholder.svg?height=400&width=400&text=Naville+Side+View",
-    },
-    {
-      id: 5,
-      name: "Lunova",
-      description: "Slip-ons - Patent leather - Noir - Men",
-      price: 1595.0,
-      image: "/images/Four.png",
-      hoverImage: "/placeholder.svg?height=400&width=400&text=Lunova+Back+View",
-      isNew: true,
-    },
-    {
-      id: 6,
-      name: "Meronix",
-      description: "Derby - Full grain leather - Burgundy - Men",
-      price: 1395.0,
-      image: "/images/Three.png",
-      hoverImage: "/placeholder.svg?height=400&width=400&text=Meronix+Profile",
-    },
-    {
-      id: 7,
-      name: "Velaro",
-      description: "Lace-ups - Suede leather - Tobacco - Men",
-      price: 1095.0,
-      image: "/images/Two.png",
-      hoverImage: "/placeholder.svg?height=400&width=400&text=Velaro+Detail",
-      isNew: true,
-    },
-    {
-      id: 8,
-      name: "Carvello",
-      description: "Chelsea boots - Smooth leather - Nero - Men",
-      price: 1895.0,
-      image: "/images/One.png",
-      hoverImage: "/placeholder.svg?height=400&width=400&text=Carvello+Side",
-    },
-  ]
+const NewArrival: FC<NewArrivalProps> = ({ title = "You Might Also Like" }) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [touchedProduct, setTouchedProduct] = useState<number | null>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
-  // Check if mobile on mount and resize
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, []);
+
+  const getItemsPerSlide = () => {
+    if (typeof window === "undefined") return 4;
+    if (window.innerWidth <= 640) return 2;
+    if (window.innerWidth <= 1024) return 2;
+    return 4;
+  };
+
+  const totalSlides = Math.ceil(sampleProducts.length / getItemsPerSlide());
+
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % totalSlides);
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+
+  const handleQuickView = (id: number) => console.log("Quick View:", id);
+  const handleAddToCart = (id: number) => console.log("Add to Cart:", id);
+
+  useEffect(() => {
+    if (!isHovered) {
+      const interval = setInterval(nextSlide, 5000);
+      return () => clearInterval(interval);
     }
-
-    checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
-  }, [])
-
-  const toggleFavorite = (id: number) =>
-    setFavorites((prev) => (prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]))
-
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(price)
-
-  // Desktop navigation
-  const handleNext = () => {
-    if (startIndex + cardsPerPage < products.length) {
-      setStartIndex((prev) => prev + 1)
-    }
-  }
-
-  const handlePrev = () => {
-    if (startIndex > 0) {
-      setStartIndex((prev) => prev - 1)
-    }
-  }
-
-  // Mobile navigation
-  const maxMobileSlides = Math.ceil(products.length / mobileCardsPerSlide)
-
-  const handleMobileNext = () => {
-    setMobileSlide((prev) => (prev + 1) % maxMobileSlides)
-  }
-
-  const handleMobilePrev = () => {
-    setMobileSlide((prev) => (prev - 1 + maxMobileSlides) % maxMobileSlides)
-  }
-
-  // Touch handlers for swipe functionality
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.targetTouches[0].clientX
-  }
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.targetTouches[0].clientX
-  }
-
-  const handleTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return
-
-    const distance = touchStartX.current - touchEndX.current
-    const isLeftSwipe = distance > 50
-    const isRightSwipe = distance < -50
-
-    if (isLeftSwipe) {
-      handleMobileNext()
-    } else if (isRightSwipe) {
-      handleMobilePrev()
-    }
-  }
-
-  const visibleProducts = products.slice(startIndex, startIndex + cardsPerPage + 1) // +1 for peek
+  }, [currentSlide, isHovered, totalSlides]);
 
   return (
-    <section className="py-16 lg:py-24 bg-white w-[80%] mx-auto relative overflow-hidden">
-      <div className="text-center mb-16">
-        <h2 className="text-3xl lg:text-4xl font-light text-gray-900 tracking-wide">New arrivals</h2>
-      </div>
-
-      {isMobile ? (
-        /* Mobile Carousel */
-        <div className="relative">
-          {/* Mobile Cards Container */}
-          <div
-            className="overflow-hidden"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={mobileSlide}
-                initial={{ x: 100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -100, opacity: 0 }}
-                transition={{ duration: 0.4 }}
-                className="flex gap-4"
-              >
-                {products
-                  .slice(mobileSlide * mobileCardsPerSlide, mobileSlide * mobileCardsPerSlide + mobileCardsPerSlide)
-                  .map((product) => (
-                    <div key={product.id} className="w-[calc(50%-8px)] flex-shrink-0 group relative">
-                      <div className="relative aspect-square bg-gray-50 rounded-t-full overflow-hidden mb-3">
-                        {product.isNew && (
-                          <div className="absolute top-2 left-2 z-10">
-                            <span className="bg-black text-white text-xs font-medium px-1.5 py-0.5 rounded">New</span>
-                          </div>
-                        )}
-                        <button
-                          onClick={() => toggleFavorite(product.id)}
-                          className="absolute top-2 right-2 z-10 p-1.5 hover:bg-white/80 rounded-full"
-                          aria-label="Add to favorites"
-                        >
-                          <Heart
-                            className={`w-4 h-4 ${
-                              favorites.includes(product.id)
-                                ? "fill-red-500 text-red-500"
-                                : "text-gray-400 hover:text-red-500"
-                            }`}
-                          />
-                        </button>
-                        <Image
-                          src={product.image || "/placeholder.svg"}
-                          alt={product.name}
-                          fill
-                          className="object-cover transition-opacity duration-500 group-hover:opacity-0"
-                        />
-                        <Image
-                          src={product.hoverImage || "/placeholder.svg"}
-                          alt={`${product.name} hover`}
-                          fill
-                          className="object-cover transition-opacity duration-500 opacity-0 group-hover:opacity-100"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <h3 className="text-sm font-medium text-gray-900">{product.name}</h3>
-                        <p className="text-xs text-gray-600 line-clamp-2">{product.description}</p>
-                        <div className="pt-1 space-y-2">
-                          <div className="flex flex-col gap-2">
-                            <span className="text-sm font-semibold text-gray-900">{formatPrice(product.price)}</span>
-                            <button className="text-xs text-white bg-black px-2 py-1 rounded hover:bg-gray-800 transition">
-                              Add to Cart
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-              </motion.div>
-            </AnimatePresence>
+    <section className="px-4 py-10 md:px-10 w-full mx-auto bg-[#fafbfc]">
+      <div className="max-w-[85%] mx-auto">
+        <div className="flex items-center justify-between mb-6">
+           <div className="mb-8 flex items-center">
+          <div className="w-1 h-6 bg-[#a77354] mr-3 rounded-full" />
+          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+        </div>
+          <div className="flex gap-2">
+            <button onClick={prevSlide} className="p-2 border rounded-full">‹</button>
+            <button onClick={nextSlide} className="p-2 border rounded-full">›</button>
           </div>
+        </div>
 
-          {/* Mobile Navigation Buttons */}
-          <button
-            onClick={handleMobilePrev}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white shadow-md p-2 rounded-full hover:bg-gray-100"
-            aria-label="Previous"
+        <div
+          className="relative overflow-hidden"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          ref={sliderRef}
+        >
+          <div
+            className="flex transition-transform duration-700 ease-in-out"
+            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
           >
-            <ArrowLeft className="w-4 h-4 text-gray-700" />
-          </button>
+            {Array.from({ length: totalSlides }).map((_, slideIndex) => (
+              <div key={slideIndex} className="w-full flex-shrink-0">
+                <div className={`grid gap-4 ${isMobile ? "grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-4"}`}>
+                  {sampleProducts
+                    .slice(
+                      slideIndex * getItemsPerSlide(),
+                      (slideIndex + 1) * getItemsPerSlide()
+                    )
+                    .map((product) => {
+                      const isTouched = touchedProduct === product.id;
+                      return (
+                        <div
+                          key={product.id}
+                          className="rounded-md p-4 text-center"
+                          onTouchStart={() => setTouchedProduct(product.id)}
+                          onTouchEnd={() => setTimeout(() => setTouchedProduct(null), 1200)}
+                        >
+                          <div className="relative aspect-[4/5] mb-4 group cursor-pointer overflow-hidden rounded">
+                            <Image
+                              src={product.image}
+                              alt={product.title}
+                              fill
+                              className={`object-cover transition-opacity duration-300 ${isTouched ? "opacity-0" : "group-hover:opacity-0"}`}
+                            />
+                            <Image
+                              src={product.hoverImage || product.image}
+                              alt={`${product.title} hover`}
+                              fill
+                              className={`object-cover transition-opacity duration-300 ${isTouched ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                              <button
+                                onClick={() => handleQuickView(product.id)}
+                                className={`bg-white text-black px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${isTouched ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+                              >
+                                Quick View
+                              </button>
+                            </div>
+                          </div>
 
-          <button
-            onClick={handleMobileNext}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white shadow-md p-2 rounded-full hover:bg-gray-100"
-            aria-label="Next"
-          >
-            <ArrowRight className="w-4 h-4 text-gray-700" />
-          </button>
+                          <h3 className="text-sm font-medium text-gray-900 mb-1">{product.title}</h3>
+                          <div className="text-sm">
+                            <span className="text-gray-900 font-semibold">${product.price.toFixed(2)}</span>
+                            {product.oldPrice && (
+                              <span className="ml-2 text-xs text-gray-400 line-through">
+                                ${product.oldPrice.toFixed(2)}
+                              </span>
+                            )}
+                          </div>
 
-          {/* Mobile Dots Indicator */}
-          <div className="flex justify-center items-center gap-2 mt-6">
-            {Array.from({ length: maxMobileSlides }).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setMobileSlide(index)}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === mobileSlide ? "bg-gray-900 w-6" : "bg-gray-300 hover:bg-gray-400"
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
+                          {(isTouched || !isMobile) && (
+                            <div className="mt-3">
+                              <button
+                                onClick={() => handleAddToCart(product.id)}
+                                className="bg-black text-white w-full py-2 rounded-md text-sm hover:bg-gray-800"
+                              >
+                                Add to Cart
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
             ))}
           </div>
         </div>
-      ) : (
-        /* Desktop Carousel */
-        <div className="relative">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={startIndex}
-              initial={{ x: 80, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -80, opacity: 0 }}
-              transition={{ duration: 0.5 }}
-              className="flex gap-6"
-            >
-              {visibleProducts.map((product, i) => (
-                <div
-                  key={product.id}
-                  className={`w-[250px] flex-shrink-0 group relative ${
-                    i === cardsPerPage ? "opacity-50 pointer-events-none" : ""
-                  }`}
-                >
-                  <div className="relative aspect-square bg-gray-50 rounded-t-full overflow-hidden mb-4">
-                    {product.isNew && (
-                      <div className="absolute top-2 left-2 z-10">
-                        <span className="bg-black text-white text-xs font-medium px-2 py-1 rounded">New</span>
-                      </div>
-                    )}
-                    <button
-                      onClick={() => toggleFavorite(product.id)}
-                      className="absolute top-2 right-2 z-10 p-2 hover:bg-white/80 rounded-full"
-                      aria-label="Add to favorites"
-                    >
-                      <Heart
-                        className={`w-5 h-5 ${
-                          favorites.includes(product.id)
-                            ? "fill-red-500 text-red-500"
-                            : "text-gray-400 hover:text-red-500"
-                        }`}
-                      />
-                    </button>
-                    <Image
-                      src={product.image || "/placeholder.svg"}
-                      alt={product.name}
-                      fill
-                      className="object-cover transition-opacity duration-500 group-hover:opacity-0"
-                    />
-                    <Image
-                      src={product.hoverImage || "/placeholder.svg"}
-                      alt={`${product.name} hover`}
-                      fill
-                      className="object-cover transition-opacity duration-500 opacity-0 group-hover:opacity-100"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-base font-medium text-gray-900">{product.name}</h3>
-                    <p className="text-sm text-gray-600">{product.description}</p>
-                    <div className="pt-1 space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-base font-semibold text-gray-900">{formatPrice(product.price)}</span>
-                        <button className="text-sm text-white bg-black px-3 py-1 rounded hover:bg-gray-800 transition">
-                          Add to Cart
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </motion.div>
-          </AnimatePresence>
 
-          {/* Desktop Floating Arrow Buttons */}
-          {startIndex > 0 && (
+        <div className="flex justify-center mt-6 gap-2">
+          {Array.from({ length: totalSlides }).map((_, index) => (
             <button
-              onClick={handlePrev}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md p-2 rounded-full hover:bg-gray-100"
-              aria-label="Previous"
-            >
-              <ArrowLeft className="w-5 h-5 text-gray-700" />
-            </button>
-          )}
-          {startIndex + cardsPerPage < products.length && (
-            <button
-              onClick={handleNext}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md p-2 rounded-full hover:bg-gray-100"
-              aria-label="Next"
-            >
-              <ArrowRight className="w-5 h-5 text-gray-700" />
-            </button>
-          )}
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`w-2 h-2 rounded-full ${
+                index === currentSlide ? "bg-black w-6" : "bg-gray-300"
+              }`}
+            />
+          ))}
         </div>
-      )}
+      </div>
     </section>
-  )
-}
+  );
+};
 
-export default NewArrivals
+export default NewArrival;
+
+
