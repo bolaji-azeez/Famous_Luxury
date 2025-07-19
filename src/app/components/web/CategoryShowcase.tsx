@@ -9,7 +9,7 @@ const categories = [
     id: 1,
     name: "Luxury Watches",
     slug: "luxury-watches",
-    image: "/images/cartierr.webp",
+    image: "/placeholder.svg?height=300&width=300&text=Luxury+Watches",
     productCount: 45,
     type: "watches",
   },
@@ -17,7 +17,7 @@ const categories = [
     id: 2,
     name: "Sport Watches",
     slug: "sport-watches",
-    image: "/images/gshock.webp",
+    image: "/placeholder.svg?height=300&width=300&text=Sport+Watches",
     productCount: 32,
     type: "watches",
   },
@@ -25,7 +25,7 @@ const categories = [
     id: 3,
     name: "Smart Watches",
     slug: "smart-watches",
-    image: "/images/smartwatch.webp",
+    image: "/placeholder.svg?height=300&width=300&text=Smart+Watches",
     productCount: 28,
     type: "watches",
   },
@@ -33,48 +33,16 @@ const categories = [
     id: 4,
     name: "Vintage Collection",
     slug: "vintage-watches",
-    image: "/images/vintage.webp",
+    image: "/placeholder.svg?height=300&width=300&text=Vintage+Watches",
     productCount: 19,
     type: "watches",
-  },
-  {
-    id: 5,
-    name: "Sunglasses",
-    slug: "sunglasses",
-    image: "/images/raybams.webp",
-    productCount: 67,
-    type: "glasses",
-  },
-  {
-    id: 6,
-    name: "Prescription",
-    slug: "prescription",
-    image: "/images/tomford.webp",
-    productCount: 89,
-    type: "glasses",
-  },
-  {
-    id: 7,
-    name: "Blue Light",
-    slug: "blue-light",
-    image: "/images/bluerray.webp",
-    productCount: 34,
-    type: "glasses",
-  },
-  {
-    id: 8,
-    name: "Designer Frames",
-    slug: "designer-frames",
-    image: "/images/view.webp",
-    productCount: 56,
-    type: "glasses",
   },
 ];
 
 export default function CategoryShowcase() {
   return (
-    <section className="py-16 lg:py-24 bg-gray-50">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 w-[85%]">
+    <section className="py-10 lg:py-12 bg-gray-50">
+      <div className=" px-4 py-10 container mx-auto sm:px-4 lg:px-8 w-[90%]">
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-light text-gray-900 mb-4">
@@ -119,7 +87,7 @@ export default function CategoryShowcase() {
           <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-900 to-amber-700 text-white">
             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300" />
             <Image
-              src="/images/s-l1601.webp"
+              src="/images/s-l1600.webp"
               alt="Designer Glasses"
               width={800}
               height={600}
@@ -149,20 +117,17 @@ export default function CategoryShowcase() {
             <Link
               key={category.id}
               href={`/category/${category.slug}`}
-              className="group relative overflow-hidden rounded-t-full bg-white shadow-sm hover:shadow-lg transition-shadow duration-300">
+              className="group relative overflow-hidden rounded-full bg-white shadow-sm hover:shadow-lg transition-shadow duration-300">
               <div className="aspect-square relative">
                 <Image
                   src={category.image || "/placeholder.svg"}
                   alt={category.name}
                   fill
-                  sizes="(max-width: 768px) 100vw, 25vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-                {/* Overlay for better text visibility */}
-                <div className="absolute bottom-0 left-0 w-full h-2/3 bg-gradient-to-t from-[#aacd6a]/90 via-transparent to-transparent pointer-events-none " />
-                <div className="absolute bottom-4 left-4 text-white">
-                  <h4 className="font-medium mb-2">{category.name}</h4>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-8 left-25 text-white text-center">
+                  <h4 className="font-medium mb-1">{category.name}</h4>
                   <p className="text-xs text-gray-200">
                     {category.productCount} products
                   </p>

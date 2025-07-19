@@ -1,242 +1,245 @@
 "use client";
 
-import type React from "react";
-
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
-import { PiShoppingBagLight, PiWatchLight, PiUser } from "react-icons/pi";
-import { IoSearch, IoClose } from "react-icons/io5";
+import { useCart } from "../components/context/cardContext";
+import { NavItem } from "../../types";
+import { PiShoppingBagLight, PiUser, PiHeartLight } from "react-icons/pi";
+import { IoSearch } from "react-icons/io5";
+import MobileMenu from "./MobileMenu";
+import DropdownMenu from "./DropdownMenu";
+import Image from "next/image";
+import logo from "../../../public/logo.jpg"; //
 
-interface NavItem {
-  name: string;
-  path?: string;
-  action?: () => void;
-  icon?: React.ReactNode;
-  hideOnMobile?: boolean;
-}
-
-const Header = () => {
-  const [state, setState] = useState({
-    isScrolled: false,
-    mobileMenuOpen: false,
-    searchOpen: false,
-    searchQuery: "",
-  });
-
-  const inputRef = useRef<HTMLInputElement>(null);
+const Header: React.FC = () => {
+  const { setIsCartModalOpen, cartItemCount } = useCart() || {};
   const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const firstMenuItemRef = useRef<HTMLAnchorElement>(null);
 
-  // Combined navigation data
-  const navItems: NavItem[] = [
-    { name: "Watches", path: "/our-world" },
-    { name: "Glasses", path: "/stories" },
-    { name: "Contact Us", path: "/services" },
-  ];
-
-  const actionItems: NavItem[] = [
-    {
-      name: "Search",
-      icon: (
-        <IoSearch
-          className={`w-6 h-6 transition-transform ${
-            state.searchOpen ? "rotate-90" : ""
-          }`}
-        />
-      ),
-      action: () =>
-        setState((prev) => ({
-          ...prev,
-          searchOpen: !prev.searchOpen,
-          searchQuery: "",
-        })),
-      hideOnMobile: true,
-    },
-    {
-      name: "Cart",
-      path: "/cart",
-      icon: <PiShoppingBagLight className="w-6 h-6" />,
-      hideOnMobile: true,
-    },
-    {
-      name: "Watch",
-      path: "/watches",
-      icon: <PiWatchLight className="w-6 h-6" />,
-      hideOnMobile: true,
-    },
-    {
-      name: "User",
-      path: "/profile",
-      icon: <PiUser className="w-6 h-6" />,
-      hideOnMobile: true,
-    },
-  ];
-
-  const mobileItems: NavItem[] = [
-    ...navItems,
-    {
-      name: "Search",
-      action: () =>
-        setState((prev) => ({
-          ...prev,
-          mobileMenuOpen: false,
-          searchOpen: true,
-        })),
-    },
-    { name: "My Bag", path: "/cart" },
-    { name: "My Profile", path: "/profile" },
-  ];
-
-  // Combined effects
+  // Close mobile menu on navigation
   useEffect(() => {
-    const handleScroll = () =>
-      setState((prev) => ({ ...prev, isScrolled: window.scrollY > 10 }));
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape")
-        setState((prev) => ({ ...prev, searchOpen: false }));
-    };
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
-    window.addEventListener("scroll", handleScroll);
-    window.addEventListener("keydown", handleKeyDown);
-
-    if (state.searchOpen && inputRef.current) inputRef.current.focus();
-
+  // Manage body overflow
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+      firstMenuItemRef.current?.focus();
+    } else {
+      document.body.style.overflow = "";
+    }
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
     };
-  }, [state.searchOpen]);
+  }, [mobileMenuOpen]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Searching for:", state.searchQuery);
-  };
+  const navItems: NavItem[] = useMemo(
+    () => [
+      { name: "Home", path: "/" },
+      { name: "Shop", path: "/allproducts" },
 
-  const updateState = (updates: Partial<typeof state>) =>
-    setState((prev) => ({ ...prev, ...updates }));
+      {
+        name: "Watches",
+        dropdown: true,
+        dropdownItems: [
+          { name: "Cartier", path: "/pages/about" },
+          { name: "G-shock A", path: "/pages/faq-a" },
+          { name: "G-shock B", path: "/pages/faq-b" },
+          { name: "G-shock C", path: "/pages/faq-c" },
+          { name: "G-shock D", path: "/pages/faq-d" },
+        ],
+      },
+      {
+        name: "Glasses",
+        dropdown: true,
+        dropdownItems: [
+          { name: "About Page", path: "/pages/about" },
+          { name: "FAQ", path: "/pages/faq" },
+        ],
+      },
+    ],
+    []
+  );
 
+  const actionItems: NavItem[] = useMemo(
+    () => [
+      {
+        name: "User",
+        path: "/profile",
+        icon: <PiUser className="w-5 h-5" />,
+      },
+      {
+        name: "Wishlist",
+        path: "/wishlist",
+        icon: <PiHeartLight className="w-5 h-5" />,
+      },
+      {
+        name: "Cart",
+        action: () => setIsCartModalOpen?.(true),
+        icon: (
+          <div className="relative">
+            <PiShoppingBagLight className="w-5 h-5" />
+            {cartItemCount && cartItemCount > 0 && (
+              <span className="absolute  bg-pink-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                {cartItemCount}
+              </span>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [cartItemCount, setIsCartModalOpen]
+  );
   const renderNavItem = (item: NavItem, isMobile = false) => {
-    const baseClasses = `text-sm uppercase tracking-wider font-medium transition-colors ${
+    const baseClasses = `text-sm font-medium ${
       pathname === item.path
-        ? "text-gold-500"
-        : "text-white hover:text-gold-400"
-    }`;
+        ? "text-[#a77354] font-semibold"
+        : "text-[#a77354] hover:text-black"
+    } ${isMobile ? "py-2" : ""}`;
 
     if (item.path) {
       return (
         <Link
           key={item.name}
           href={item.path}
-          className={`${baseClasses} ${isMobile ? "py-2" : ""}`}
-          onClick={() => isMobile && updateState({ mobileMenuOpen: false })}>
-          {item.icon || item.name}
+          className={baseClasses}
+          ref={isMobile && item.name === "Home" ? firstMenuItemRef : null}
+          aria-current={pathname === item.path ? "page" : undefined}>
+          {item.name}
         </Link>
       );
     }
 
-    return (
-      <button
-        key={item.name}
-        onClick={item.action}
-        className={`${baseClasses} ${isMobile ? "py-2 text-left" : ""}`}>
-        {item.icon || item.name}
-      </button>
-    );
+    if (item.action) {
+      return (
+        <button
+          key={item.name}
+          onClick={item.action}
+          className={`${baseClasses} ${isMobile ? "text-left" : ""}`}
+          aria-label={item.name}>
+          {item.icon || item.name}
+        </button>
+      );
+    }
+
+    if (item.dropdown) {
+      return (
+        <DropdownMenu
+          key={item.name}
+          name={item.name}
+          items={item.dropdownItems || []}
+          baseClasses={baseClasses}
+          isMobile={isMobile}
+        />
+      );
+    }
+
+    return null;
   };
 
   return (
-    <header
-      className={`fixed w-full z-50 transition-all duration-300 ${
-        state.isScrolled ? "bg-black/90 py-2" : "bg-green-950 py-4"
-      }`}>
-      <div className="container h-[80px] mx-auto px-4 sm:px-6 bg-transparent">
-        <div className="flex justify-between items-center h-full">
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex space-x-8">
-            {navItems.map((item) => renderNavItem(item))}
-          </nav>
+    <header className="sticky top-0 left-0 right-0 z-30 bg-white shadow-sm border-b border-gray-100">
+      <div className="container h-[90px] w-[85%] mx-auto px-4 sm:px-6 flex justify-between items-center">
+        {/* Mobile menu button */}
+        <button
+          className="lg:hidden text-gray-700"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-menu">
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d={
+                mobileMenuOpen
+                  ? "M6 18L18 6M6 6l12 12"
+                  : "M4 6h16M4 12h16M4 18h16"
+              }
+            />
+          </svg>
+        </button>
 
-          {/* Logo */}
-          <Link href="/" className="text-2xl text-white font-bold">
-            Famous Luxuries
-          </Link>
-
-          {/* Desktop Actions */}
-          <div className="flex items-center space-x-6">
-            {/* Search Input */}
-            {state.searchOpen && (
-              <form
-                onSubmit={handleSearch}
-                className="hidden lg:flex items-center">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={state.searchQuery}
-                  onChange={(e) => updateState({ searchQuery: e.target.value })}
-                  placeholder="Search our collection..."
-                  className="bg-transparent border-b border-white text-white py-1 px-2 focus:outline-none w-64"
-                />
-                <button
-                  type="button"
-                  onClick={() => updateState({ searchOpen: false })}
-                  className="ml-2 text-white">
-                  <IoClose className="w-5 h-5" />
-                </button>
-              </form>
-            )}
-
-            {/* Action Icons - Hidden on mobile/tablet */}
-            <nav className="hidden lg:flex space-x-6">
-              {actionItems
-                .filter((item) => !state.searchOpen || item.name !== "Search")
-                .map((item) => renderNavItem(item))}
-            </nav>
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <button
-            className="lg:hidden text-white"
-            onClick={() =>
-              updateState({ mobileMenuOpen: !state.mobileMenuOpen })
-            }
-            aria-label="Toggle menu">
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d={
-                  state.mobileMenuOpen
-                    ? "M6 18L18 6M6 6l12 12"
-                    : "M4 6h16M4 12h16M4 18h16"
-                }
-              />
-            </svg>
-          </button>
+        <div className="relative w-[120px] h-[40px]">
+          <Image
+            src={logo}
+            alt="Famous Stores"
+            fill
+            className="object-cover rounded-sm"
+            priority
+          />
         </div>
 
-        {/* Mobile Menu */}
-        {state.mobileMenuOpen && (
-          <div className="lg:hidden bg-black/95 py-4">
-            <div className="px-4 mb-4">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="w-full bg-white/10 text-white p-2 rounded focus:outline-none focus:bg-white/20"
-              />
-            </div>
-            <div className="flex flex-col space-y-4 px-4">
-              {mobileItems.map((item) => renderNavItem(item, true))}
-            </div>
+        <nav className="hidden lg:flex items-center space-x-8 text-[#a77354]">
+          {navItems.map((item) => renderNavItem(item))}
+        </nav>
+
+        {/* Search and Actions */}
+        <div className="flex items-center space-x-4">
+          <div className="relative hidden md:flex items-center border border-[#a77354] rounded-full px-4 py-2 bg-gray-50 ">
+            <IoSearch className="w-5 h-5 text-[#a77354] mr-2" />
+            <input
+              type="text"
+              placeholder="Search for products..."
+              className="bg-transparent text-gray-500 placeholder-gray-500 focus:outline-none w-64"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-        )}
+
+          <nav
+            className="flex items-center space-x-4"
+            aria-label="User actions">
+            {actionItems.map((item) =>
+              item.path ? (
+                <Link
+                  key={item.name}
+                  href={item.path}
+                  className="hidden md:block text-gray-700 hover:text-black"
+                  aria-label={item.name}>
+                  {item.icon}
+                </Link>
+              ) : (
+                <button
+                  key={item.name}
+                  onClick={item.action}
+                  className="text-gray-700 hover:text-black"
+                  aria-label={item.name}>
+                  {item.icon}
+                </button>
+              )
+            )}
+          </nav>
+        </div>
       </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <MobileMenu
+          isOpen={mobileMenuOpen}
+          onClose={() => setMobileMenuOpen(false)}
+          searchQuery={searchQuery}
+          onSearchChange={(e) => setSearchQuery(e.target.value)}
+          isSearching={isSearching}
+          navItems={navItems}
+          actionItems={actionItems}
+          renderNavItem={renderNavItem}
+          firstMenuItemRef={firstMenuItemRef}
+        />
+      )}
     </header>
   );
 };
 
-export default Header;
+export default React.memo(Header);

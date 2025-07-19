@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 // Core data types for the e-commerce platform
 export interface Product {
   id: string
@@ -71,4 +73,60 @@ export interface ApiResponse<T> {
     total: number
     totalPages: number
   }
+}
+
+export interface SlideData {
+  id: number;
+  title: string;
+  subtitle: string;
+  description: string;
+  image: string;
+  alt: string;
+}
+
+export interface Cases {
+  id: number;
+  name: string;
+  description: string;
+  image: string;
+  link: string;
+}
+
+export interface Product2 {
+  id: number
+  name: string
+  description: string
+  price: number
+  image: string
+  hoverImage: string
+  isNew?: boolean
+}
+
+
+
+export interface NavItem {
+  name: string;
+  path?: string;
+  action?: () => void;
+  icon?: ReactNode;
+  dropdown?: boolean;
+  dropdownItems?: { name: string; path: string }[];
+}
+
+
+export interface Watch {
+  id: string;
+  name: string;
+  initialImage: string;
+  hoverImage: string;
+  amount: number;
+  description: string;
+}
+
+export interface CartItem {
+  id: string;
+  title: string;
+  price: number;
+  quantity: number;
+  image?: string;
 }
