@@ -5,7 +5,7 @@ import "./globals.css";
 import Header from "./static/header";
 import Footer from "./static/footer";
 import { CartProvider } from "./components/context/cardContext";
-import CartSidebar from "./CartSidebar/page";
+
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -28,7 +28,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             color: "#ffffff",
           }}>
           <Header />
-         <CartSidebar />
+         
           <main className="flex-grow">{children}</main>
           <Footer />
         </body>

@@ -1,9 +1,8 @@
 "use client";
 import ProductCard from "../ui/productcard";
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import { motion } from "framer-motion";
+import Banner from "../ui/Banner";
 
 const ProductCardSkeleton = () => (
   <motion.div
@@ -29,8 +28,8 @@ const allProductsByBrand = {
       id: 1,
       name: "Casio Classic",
       price: 59.99,
-      image: "/images/casio1.jpg",
-      hoverImage: "/images/casio1-hover.jpg",
+      image: "/images/cartiergold.webp",
+      hoverImage: "/images/dc3bdd3c05f257f5b216fc83a0a73794.png-removebg-preview.png",
     },
     {
       id: 2,
@@ -185,37 +184,25 @@ const BrandSections = () => {
   }, []);
 
   return (
-    <main className="bg-gray-50 min-h-screen flex flex-col items-center">
-      {/* Banner (unchanged) */}
-      <div className="relative w-full h-64 flex items-center justify-center ">
-        <Image
-          src="/images/black.jpeg"
-          alt="Products Hero"
-          fill
-          className="absolute inset-0 w-full h-full object-cover
-           opacity-100"
-          priority
-        />
-        <div className="relative z-10 w-[85%] gap-5 flex items-center flex-col justify-center h-full px-6 md:px-12 text-white">
-          <h2 className="text-6xl text-[#a77354]">Products</h2>
-          <div className="items-center space-x-2">
-            <Link href="/" className="hover:underline text-[16px]">
-              Home
-            </Link>
-            <span>/</span>
-            <span className="font-semibold text-[16px]">All Products</span>
-          </div>
-        </div>
-      </div>
+    <main className="bg-[#f9fafb] min-h-screen flex flex-col items-center">
+  
+      <Banner
+        title="Products"
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "All Products", href: " " },
+        ]}
+        titleColor="#a77354"
+      />
 
-      {/* Sticky Brand Nav (unchanged) */}
-      <div className="sticky top-0 z-20 bg-gray-50 border-b border-gray-200 w-[85%] flex justify-between align-center py-3 px-4">
+     
+      <div className="sticky top-0 z-20 bg-gray-50 border-b border-gray-200 w-[85%] flex justify-between align-center py-3 px-4  ">
         <div className="w-[90%] mx-auto py-3 flex flex-wrap gap-3 overflow-x-auto scrollbar-hide">
           {Object.keys(allProductsByBrand).map((brand) => (
             <button
               key={brand}
               onClick={() => scrollToBrand(brand)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+              className={`px-4 py-2 rounded-sm text-sm font-medium transition ${
                 activeBrand === brand
                   ? "bg-black text-white"
                   : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
@@ -225,12 +212,12 @@ const BrandSections = () => {
           ))}
         </div>
 
-        {/* Filter/Sort (unchanged) */}
+       
         <div className="w-[85%] mx-auto mt-2 mb-3 flex justify-end">
           <select
             value={sortOption}
             onChange={(e) => setSortOption(e.target.value)}
-            className="border border-gray-300 rounded-md px-4 py-2 text-sm text-gray-700">
+            className="border border-gray-300 rounded-sm px-4 py-2 text-sm text-gray-700">
             <option value="default">Sort by: Default</option>
             <option value="price-low">Price: Low to High</option>
             <option value="price-high">Price: High to Low</option>
@@ -304,7 +291,7 @@ const BrandSections = () => {
                       className="flex justify-center mt-8">
                       <button
                         onClick={() => handleSeeMore(brand, sortedItems.length)}
-                        className="px-6 py-2 border border-gray-300 text-sm rounded-md hover:bg-gray-100 transition-colors">
+                        className="px-6 py-2 border bg-[#232c3b] border-gray-300 text-sm rounded-md hover:text-white transition-colors">
                         See More {brand} Products ({sortedItems.length - 4})
                       </button>
                     </motion.div>
