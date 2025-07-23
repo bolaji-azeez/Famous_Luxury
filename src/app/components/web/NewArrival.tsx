@@ -1,15 +1,7 @@
 "use client";
-import Image from "next/image";
-import { type FC, useState, useEffect , useRef} from "react";
+import { type FC, useState, useEffect, useRef } from "react";
+import ProductCard from "@/app/ui/productcard";
 
-interface ProductCard {
-  id: number;
-  title: string;
-  price: number;
-  oldPrice?: number;
-  image: string;
-  hoverImage?: string;
-}
 
 interface NewArrivalProps {
   title?: string;
@@ -24,6 +16,7 @@ const sampleProducts: ProductCard[] = [
     image: "/images/vintage.webp",
     hoverImage:
       "/images/dc3bdd3c05f257f5b216fc83a0a73794.png-removebg-preview.png",
+      size: "medium"
   },
   {
     id: 2,
@@ -95,6 +88,11 @@ const NewArrival: FC<NewArrivalProps> = ({ title = "You Might Also Like" }) => {
     return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
+
+  const handleAddToCart = (id: number) => {
+    console.log("Add to cart:", id);
+    
+  }
   const getItemsPerSlide = () => {
     if (typeof window === "undefined") return 4;
     if (window.innerWidth <= 640) return 2;
@@ -105,10 +103,8 @@ const NewArrival: FC<NewArrivalProps> = ({ title = "You Might Also Like" }) => {
   const totalSlides = Math.ceil(sampleProducts.length / getItemsPerSlide());
 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % totalSlides);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
-
-  const handleQuickView = (id: number) => console.log("Quick View:", id);
-  const handleAddToCart = (id: number) => console.log("Add to Cart:", id);
+  const prevSlide = () =>
+    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
 
   useEffect(() => {
     if (!isHovered) {
@@ -121,13 +117,17 @@ const NewArrival: FC<NewArrivalProps> = ({ title = "You Might Also Like" }) => {
     <section className="px-4 py-10 md:px-10 w-full mx-auto bg-[#fafbfc]">
       <div className="max-w-[85%] mx-auto">
         <div className="flex items-center justify-between mb-6">
-           <div className="mb-8 flex items-center">
-          <div className="w-1 h-6 bg-[#a77354] mr-3 rounded-full" />
-          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-        </div>
+          <div className="mb-8 flex items-center">
+            <div className="w-1 h-6 bg-[#a77354] mr-3 rounded-full" />
+            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+          </div>
           <div className="flex gap-2">
-            <button onClick={prevSlide} className="p-2 border rounded-full">‹</button>
-            <button onClick={nextSlide} className="p-2 border rounded-full">›</button>
+            <button onClick={prevSlide} className="p-2 border text-[#101828] rounded-full">
+              ‹
+            </button>
+            <button onClick={nextSlide} className="p-2 border rounded-full text-[#101828]">
+              ›
+            </button>
           </div>
         </div>
 
@@ -135,75 +135,28 @@ const NewArrival: FC<NewArrivalProps> = ({ title = "You Might Also Like" }) => {
           className="relative overflow-hidden"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          ref={sliderRef}
-        >
+          ref={sliderRef}>
           <div
             className="flex transition-transform duration-700 ease-in-out"
-            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-          >
+            style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
             {Array.from({ length: totalSlides }).map((_, slideIndex) => (
               <div key={slideIndex} className="w-full flex-shrink-0">
-                <div className={`grid gap-4 ${isMobile ? "grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-4"}`}>
+                <div
+                  className={`grid gap-4 ${
+                    isMobile ? "grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-4"
+                  }`}>
                   {sampleProducts
                     .slice(
                       slideIndex * getItemsPerSlide(),
                       (slideIndex + 1) * getItemsPerSlide()
                     )
-                    .map((product) => {
-                      const isTouched = touchedProduct === product.id;
-                      return (
-                        <div
-                          key={product.id}
-                          className="rounded-md p-4 text-center"
-                          onTouchStart={() => setTouchedProduct(product.id)}
-                          onTouchEnd={() => setTimeout(() => setTouchedProduct(null), 1200)}
-                        >
-                          <div className="relative aspect-[4/5] mb-4 group cursor-pointer overflow-hidden rounded">
-                            <Image
-                              src={product.image}
-                              alt={product.title}
-                              fill
-                              className={`object-cover transition-opacity duration-300 ${isTouched ? "opacity-0" : "group-hover:opacity-0"}`}
-                            />
-                            <Image
-                              src={product.hoverImage || product.image}
-                              alt={`${product.title} hover`}
-                              fill
-                              className={`object-cover transition-opacity duration-300 ${isTouched ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                              <button
-                                onClick={() => handleQuickView(product.id)}
-                                className={`bg-white text-black px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${isTouched ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
-                              >
-                                Quick View
-                              </button>
-                            </div>
-                          </div>
-
-                          <h3 className="text-sm font-medium text-gray-900 mb-1">{product.title}</h3>
-                          <div className="text-sm">
-                            <span className="text-gray-900 font-semibold">${product.price.toFixed(2)}</span>
-                            {product.oldPrice && (
-                              <span className="ml-2 text-xs text-gray-400 line-through">
-                                ${product.oldPrice.toFixed(2)}
-                              </span>
-                            )}
-                          </div>
-
-                          {(isTouched || !isMobile) && (
-                            <div className="mt-3">
-                              <button
-                                onClick={() => handleAddToCart(product.id)}
-                                className="bg-black text-white w-full py-2 rounded-md text-sm hover:bg-gray-800"
-                              >
-                                Add to Cart
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                    .map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        onAddToCart={handleAddToCart}
+                      />
+                    ))}
                 </div>
               </div>
             ))}
@@ -227,5 +180,3 @@ const NewArrival: FC<NewArrivalProps> = ({ title = "You Might Also Like" }) => {
 };
 
 export default NewArrival;
-
-

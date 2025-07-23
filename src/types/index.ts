@@ -130,3 +130,24 @@ export interface CartItem {
   quantity: number;
   image?: string;
 }
+
+export  interface ProductCardProps {
+  product: {
+    id: number;
+    title: string;
+    price: number;
+    oldPrice?: number;
+    image: string;
+    hoverImage?: string;
+  };
+}
+
+
+
+
+
+
+
+
+
+      

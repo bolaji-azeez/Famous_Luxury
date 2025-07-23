@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import NewArrivals from "../components/web/NewArrival";
-import Category from "../components/web/category";
+
 
 export default function ModernProductPage() {
   const [quantity, setQuantity] = useState<number>(1);
