@@ -118,53 +118,82 @@ export function Hero() {
 
       {/* Hero Content - Positioned higher up */}
       <div className="z-10 min-h-screen flex items-start pt-32">
-        {" "}
-        {/* Changed from items-center to items-start and added pt-32 */}
         <div className="mx-auto px-4 sm:px-6 lg:px-8 w-[85%]">
           <div className="max-w-3xl">
             {/* Animated content that changes with slides */}
             <div
               key={`${currentSlide}-${isVisible}`}
-              className={`transition-all duration-1000 ease-out ${
+              className={`transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                 isVisible
                   ? "opacity-100 transform translate-x-0 translate-y-0"
-                  : "opacity-0 transform -translate-x-10 translate-y-5"
+                  : "opacity-0 transform -translate-x-5 translate-y-2"
               } text-left sm:text-left`}>
-              <h1 className="text-7xl font-bold mb-5">
-                {heroSlides[currentSlide].title}
+              <h1 className="text-6xl font-bold ">
+                {heroSlides[currentSlide].title
+                  .split(" ")
+                  .map((word, wordIndex) => (
+                    <span
+                      key={wordIndex}
+                      className="inline-block overflow-hidden">
+                      <span
+                        className="inline-block transition-all duration-500 ease-[cubic-bezier(0.5,1,0.89,1)]"
+                        style={{
+                          transform: isVisible
+                            ? "translateY(0)"
+                            : "translateY(100%)",
+                          opacity: isVisible ? 1 : 0,
+                          transitionDelay: `${wordIndex * 0.05}s`,
+                        }}>
+                        {word +
+                          (wordIndex <
+                          heroSlides[currentSlide].title.split(" ").length - 1
+                            ? " "
+                            : "")}
+                      </span>
+                    </span>
+                  ))}
               </h1>
 
-              <h2 className="text-xl sm:text-2xl md:text-3xl text-gold font-medium mb-6">
-                {heroSlides[currentSlide].subtitle}
+              <h2 className="text-xl sm:text-2xl md:text-3xl text-gold font-medium ">
+                <span className="inline-block overflow-hidden">
+                  <span
+                    className="inline-block transition-all duration-500 ease-[cubic-bezier(0.5,1,0.89,1)]"
+                    style={{
+                      transform: isVisible
+                        ? "translateY(0)"
+                        : "translateY(20px)",
+                      opacity: isVisible ? 1 : 0,
+                      transitionDelay: "0.2s",
+                    }}>
+                    {heroSlides[currentSlide].subtitle}
+                  </span>
+                </span>
               </h2>
 
-              <p className="text-lg sm:text-xl text-white/90 mb-8 leading-relaxed w-[540px]">
-                <span>
-                  {heroSlides[currentSlide].description
-                    .split("")
-                    .map((char, i) => (
-                      <span
-                        key={i}
-                        style={{
-                          display: "inline-block",
-                          opacity: 0,
-                          animation: `fadeInChar 0.03s forwards`,
-                          animationDelay: `${i * 0.03}s`,
-                        }}>
-                        {char === " " ? "\u00A0" : char}
-                      </span>
-                    ))}
+              <p className="text-lg sm:text-xl text-white/90 leading-relaxed w-[540px]">
+                <span className="inline-block overflow-hidden">
+                  <span
+                    className="inline-block transition-all duration-500 ease-[cubic-bezier(0.5,1,0.89,1)]"
+                    style={{
+                      transform: isVisible
+                        ? "translateY(0)"
+                        : "translateY(20px)",
+                      opacity: isVisible ? 1 : 0,
+                      transitionDelay: "0.3s",
+                    }}>
+                    {heroSlides[currentSlide].description}
+                  </span>
                 </span>
-                <style jsx>{`
-                  @keyframes fadeInChar {
-                    to {
-                      opacity: 1;
-                    }
-                  }
-                `}</style>
               </p>
 
-              <div className="flex items-center gap-4">
+              <div
+                className="flex items-center gap-4"
+                style={{
+                  transition: "all 0.5s ease-out",
+                  transitionDelay: "0.4s",
+                  opacity: isVisible ? 1 : 0,
+                  transform: isVisible ? "translateX(0)" : "translateX(-20px)",
+                }}>
                 <h2 className="text-3xl">Discover more</h2>
                 <Link href="/allproducts" className="group">
                   <FaArrowRightLong className="text-3xl transition-all cursor-pointer group-hover:translate-x-2" />

@@ -47,7 +47,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({
         {isOpen && (
           <div
             id={`${name.toLowerCase()}-dropdown`}
-            className="pl-4 mt-2 space-y-2">
+            className="pl-2 mt-2 space-y-2">
             {items.map((item) => (
               <Link
                 key={item.path}

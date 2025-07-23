@@ -1,5 +1,4 @@
 "use client";
-
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -13,6 +12,7 @@ interface Product {
   discountPercentage?: number;
   image: string;
   hoverImage?: string;
+  size?: string;
 }
 
 const products: Product[] = [
@@ -84,7 +84,12 @@ export default function PopularProducts() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    setIsMobile(window.innerWidth <= 768);
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+    return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
   const handleQuickView = (productId: number) => {
@@ -96,26 +101,26 @@ export default function PopularProducts() {
   };
 
   return (
-    <section className="py-12 px-4 md:px-6 lg:px-8 bg-gray-50">
-      <div className="w-[85%] mx-auto">
+    <section className="px-4 py-10 md:px-10 w-full mx-auto bg-[#fafbfc]">
+      <div className="max-w-[85%] mx-auto">
         <div className="mb-8 flex items-center">
           <div className="w-1 h-6 bg-[#a77354] mr-3 rounded-full" />
           <h2 className="text-2xl font-bold text-gray-900">Popular Products</h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {products.map((product) => {
             const isTouched = touchedProduct === product.id;
 
             return (
               <div
                 key={product.id}
-                className="rounded-md p-4 text-center"
+                className="group relative"
                 onTouchStart={() => setTouchedProduct(product.id)}
                 onTouchEnd={() =>
                   setTimeout(() => setTouchedProduct(null), 1200)
                 }>
-                <div className="relative aspect-[4/5] mb-4 group cursor-pointer overflow-hidden rounded">
+                <div className="relative aspect-square mb-3 overflow-hidden rounded">
                   <Image
                     src={product.image}
                     alt={product.name}
@@ -134,42 +139,43 @@ export default function PopularProducts() {
                         : "opacity-0 group-hover:opacity-100"
                     }`}
                   />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <button
-                      onClick={() => handleQuickView(product.id)}
-                      className={`bg-white text-black px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
-                        isTouched
-                          ? "opacity-100"
-                          : "opacity-0 group-hover:opacity-100"
-                      }`}>
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleQuickView(product.id);
+                      }}
+                      className="bg-white text-black px-4 py-2 rounded-md text-sm font-medium">
                       Quick View
                     </button>
                   </div>
                 </div>
 
-                <h3 className="text-sm font-medium text-gray-900 mb-1">
-                  {product.name}
-                </h3>
-                <div className="text-sm">
-                  <span className="text-gray-900 font-semibold">
-                    ${product.price.toFixed(2)}
-                  </span>
-                  {product.oldPrice && (
-                    <span className="ml-2 text-xs text-gray-400 line-through">
-                      ${product.oldPrice.toFixed(2)}
+                <div className="p-2">
+                  <h3 className="text-sm font-medium text-gray-900 line-clamp-1">
+                    {product.name}
+                  </h3>
+                  <div className="flex items-center mt-1">
+                    <span className="text-sm font-semibold text-gray-900">
+                      ${product.price.toFixed(2)}
                     </span>
-                  )}
+                    {product.oldPrice && (
+                      <span className="ml-2 text-xs text-gray-400 line-through">
+                        ${product.oldPrice.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                {(isTouched || !isMobile) && (
-                  <div className="mt-3">
-                    <button
-                      onClick={() => handleAddToCart(product.id)}
-                      className="bg-black text-white w-full py-2 rounded-md text-sm hover:bg-gray-800">
-                      Add to Cart
-                    </button>
-                  </div>
-                )}
+                <div className="px-2 pb-2">
+                  <button
+                    onClick={() => handleAddToCart(product.id)}
+                    className={`w-full bg-black text-white py-2 rounded-md text-sm hover:bg-gray-800 transition-colors ${
+                      isMobile && !isTouched ? "hidden" : "block"
+                    }`}>
+                    Add to Cart
+                  </button>
+                </div>
               </div>
             );
           })}
@@ -186,12 +192,3 @@ export default function PopularProducts() {
     </section>
   );
 }
-
-
-
-
-
-
-
-
-

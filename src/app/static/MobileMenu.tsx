@@ -39,7 +39,7 @@ const MobileMenu = forwardRef<HTMLDivElement, MobileMenuProps>(
     return (
       <div
         ref={ref}
-        className="lg:hidden fixed inset-0 bg-white z-20 flex flex-col py-6 px-4 shadow-lg overflow-y-auto"
+        className="lg:hidden fixed inset-0 bg-white z-20 flex flex-col py-2 px-2 shadow-lg overflow-y-auto"
         role="dialog"
         aria-modal="true"
         aria-label="Mobile menu"

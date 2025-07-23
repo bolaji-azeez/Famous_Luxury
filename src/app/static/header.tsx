@@ -4,18 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NavItem } from "../../types";
 import { PiUser, PiHeartLight } from "react-icons/pi";
-import { IoSearch } from "react-icons/io5";
 import MobileMenu from "./MobileMenu";
 import DropdownMenu from "./DropdownMenu";
 import Image from "next/image";
 import logo from "../../../public/logo.jpg";
-import CartSidebar from "../CartSidebar/page"; // <-- Import CartSidebar
+import CartSidebar from "../CartSidebar/page";
 
 const Header: React.FC = () => {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
   const firstMenuItemRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
@@ -38,20 +35,23 @@ const Header: React.FC = () => {
     () => [
       { name: "Home", path: "/" },
       { name: "Shop", path: "/allproducts" },
+      { name: "About", path: "/About" },
       {
         name: "Watches",
         dropdown: true,
         dropdownItems: [
           { name: "Cartier", path: "/Gucci" },
-          
+          { name: "G-shock", path: "/pages/faq-1" },
+          { name: "G-shock", path: "/pages/faq-2" },
         ],
       },
       {
         name: "Glasses",
         dropdown: true,
         dropdownItems: [
-          { name: "About Page", path: "/pages/about" },
-          { name: "FAQ", path: "/pages/faq" },
+          { name: "Cartier", path: "/cart" },
+          { name: "G-shock", path: "/pages/faq-1" },
+          { name: "G-shock", path: "/pages/faq-2" },
         ],
       },
     ],
@@ -152,19 +152,8 @@ const Header: React.FC = () => {
             {navItems.map((item) => renderNavItem(item))}
           </nav>
         </div>
-        {/* Search and Actions */}
-        <div className="flex items-center space-x-4">
-          <div className="relative hidden md:flex items-center border border-gray-300 rounded-full px-4 py-2 bg-gray-50 focus-within:border-black">
-            <IoSearch className="w-5 h-5 text-gray-500 mr-2" />
-            <input
-              type="text"
-              placeholder="Search for products..."
-              className="bg-transparent text-gray-800 placeholder-gray-500 focus:outline-none w-64"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
 
+        <div className="flex items-center space-x-4">
           {/* Cart Sidebar Component */}
           <CartSidebar />
 
@@ -188,9 +177,6 @@ const Header: React.FC = () => {
         <MobileMenu
           isOpen={mobileMenuOpen}
           onClose={() => setMobileMenuOpen(false)}
-          searchQuery={searchQuery}
-          onSearchChange={(e) => setSearchQuery(e.target.value)}
-          isSearching={isSearching}
           navItems={navItems}
           actionItems={actionItems}
           renderNavItem={renderNavItem}

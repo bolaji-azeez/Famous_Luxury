@@ -156,3 +156,19 @@
     animation: fadeIn 1s ease-out forwards;
   }
 }
+
+
+/* styles/globals.css */
+.swal2-container.swal2-top {
+  top: 0;
+  right: 0;
+  left: 0;
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+}
+
+.swal2-popup.swal2-toast {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}

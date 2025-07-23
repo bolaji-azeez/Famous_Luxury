@@ -18,14 +18,14 @@ const VideoDisplaySection = () => {
   };
 
   return (
-    <div className="w-full bg-[#a77153]">
+    <div className="w-full bg-[#232c3b] pt-15 pb-15">
       {/* Video Container */}
-      <div className="relative w-full aspect-video max-w-4xl mx-auto">
+      <div className="relative  aspect-video max-w-2xl mx-auto rounded-sm">
         {/* Video Element */}
         <video
           ref={videoRef}
           src="/71a833516636291a8842a2e8573e48d087d46ed5.f30.mp4" // Ensure this file is in your public directory
-          className="w-full h-full object-contain"
+          className="w-full h-full object-cover rounded-sm"
           onClick={togglePlay}
           poster="/images/bluerray.webp" // Add poster image
         />

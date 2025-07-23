@@ -1,9 +1,10 @@
 "use client";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import QuickViewModal from "./QuickViewModal";
-import { useCart } from "../components/context/cardContext"; // Import the cart context
+import { useCart } from "../components/context/cardContext";
+import Swal from "sweetalert2";
 
 interface Product {
   id: number;
@@ -26,7 +27,18 @@ export default function ProductCard({
   const [touched, setTouched] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showQuickView, setShowQuickView] = useState(false);
-  const { addToCart } = useCart(); // Access addToCart from context
+  const { addToCart } = useCart();
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, []);
 
   const handleAddToCart = () => {
     addToCart({
@@ -35,6 +47,18 @@ export default function ProductCard({
       price: product.price,
       quantity: 1,
       image: product.image,
+    });
+
+    // Show SweetAlert notification
+    Swal.fire({
+      position: "top-end",
+      icon: "success",
+      title: "Added to cart!",
+      showConfirmButton: false,
+      timer: 1500,
+      toast: true,
+      background: "#4BB543",
+      color: "white",
     });
   };
 
@@ -50,22 +74,23 @@ export default function ProductCard({
         <div className="relative items-center aspect-[4/5] mb-4 cursor-pointer overflow-hidden rounded">
           <Image
             src={product.image}
-            alt={`${product.title} hover`}
+            alt={`${product.title}`}
             fill
             className={`object-cover transition-opacity duration-300 ${
               touched ? "opacity-0" : "group-hover:opacity-0"
             }`}
+            priority
           />
           <Image
             src={product.hoverImage || product.image}
-            alt={`${product.title} hover`}
+            alt={`${product.title}`}
             fill
             className={`object-cover transition-opacity duration-300 ${
               touched ? "opacity-100" : "opacity-0 group-hover:opacity-100"
             }`}
           />
           <motion.div
-            className="absolute left-25 bottom-10 flex flex-col space-y-2 z-10"
+            className="absolute left-20 bottom-10 flex flex-col space-y-2 z-10"
             variants={{
               rest: { opacity: 0, y: -20 },
               hover: { opacity: 1, y: 0 },
@@ -75,7 +100,7 @@ export default function ProductCard({
                 e.preventDefault();
                 setShowQuickView(true);
               }}
-              className="bg-[#232c3b] text-[#fefefe] py-3 px-2 rounded-sm shadow-sm transition-colors"
+              className="bg-[#232c3b] text-[#fefefe] py-3 px-2 rounded-sm shadow-sm transition-colors hover:bg-gray-800"
               aria-label="Quick view">
               Quick View
             </button>
@@ -121,16 +146,3 @@ export default function ProductCard({
     </>
   );
 }
-
-const EyeIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-    <circle cx="12" cy="12" r="3"></circle>
-  </svg>
-);

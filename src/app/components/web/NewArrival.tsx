@@ -2,6 +2,7 @@
 import { type FC, useState, useEffect, useRef } from "react";
 import ProductCard from "@/app/ui/productcard";
 
+
 interface NewArrivalProps {
   title?: string;
 }
@@ -15,6 +16,7 @@ const sampleProducts: ProductCard[] = [
     image: "/images/vintage.webp",
     hoverImage:
       "/images/dc3bdd3c05f257f5b216fc83a0a73794.png-removebg-preview.png",
+      size: "medium"
   },
   {
     id: 2,
