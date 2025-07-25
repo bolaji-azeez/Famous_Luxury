@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { FiTrash2 } from "react-icons/fi";
 import { FiPlus, FiMinus } from "react-icons/fi";
+import { useEffect } from "react";
 
 const CartSidebar = () => {
   const { cart, removeFromCart, updateQuantity, cartItemCount } = useCart();
@@ -19,11 +20,22 @@ const CartSidebar = () => {
     0
   );
 
+  useEffect(() => {
+  if (isOpen) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "";
+  }
+  return () => {
+    document.body.style.overflow = "";
+  };
+}, [isOpen]);
+
   return (
     <>
       <button
         onClick={toggleSidebar}
-        className="relative p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+        className="relative p-4 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
         aria-label="Cart">
         <span className="w-6 h-6 block">🛒</span>
         {cartItemCount > 0 && (
@@ -37,7 +49,7 @@ const CartSidebar = () => {
         {isOpen && (
           <>
             <motion.div
-              className="fixed inset-0 bg-black bg-opacity-50 z-40"
+              className="fixed inset-0 bg-black bg-opacity-50 z-40 p-4"
               onClick={toggleSidebar}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -45,13 +57,13 @@ const CartSidebar = () => {
             />
 
             <motion.div
-              className="fixed top-0 right-0 w-full sm:w-96 h-full bg-white shadow-lg z-50 flex flex-col"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}>
+              initial={{ x: "100%", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: "100%", opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className="fixed top-0 right-0 w-full sm:w-96 h-full bg-white shadow-lg z-50 flex flex-col">
               <div className="flex justify-between items-center p-4 border-b">
-                <h2 className="text-lg font-bold">
+                <h2 className="text-lg text-black font-bold">
                   Your Cart ({cartItemCount})
                 </h2>
                 <button
@@ -80,13 +92,15 @@ const CartSidebar = () => {
                         key={item.id}
                         className="flex gap-4 pb-4 border-b border-gray-100">
                         <div className="relative h-24 w-20 flex-shrink-0 overflow-hidden rounded">
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            fill
-                            className="object-cover"
-                            sizes="80px"
-                          />
+                          <Link href="/detail">
+                            <Image
+                              src={item.image}
+                              alt={item.name}
+                              fill
+                              className="object-cover"
+                              sizes="80px"
+                            />
+                          </Link>
                         </div>
 
                         <div className="flex-1">
@@ -147,7 +161,7 @@ const CartSidebar = () => {
                     <span className="font-medium">Subtotal:</span>
                     <span className="font-bold">${subtotal.toFixed(2)}</span>
                   </div>
-                  <Link href="/checkout" onClick={toggleSidebar}>
+                  <Link href="/checkout-page" onClick={toggleSidebar}>
                     <button className="w-full bg-black text-white py-3 rounded hover:bg-gray-800 transition-colors">
                       Proceed to Checkout
                     </button>

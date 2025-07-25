@@ -18,7 +18,7 @@ export function Hero() {
       title: "Crystal Grandeur",
       description:
         "Elevate every moment with dazzling crystalware designed to impress and inspire.",
-      buttonLink: "/glass",
+      buttonLink: "/Gucci",
     },
     {
       id: 3,
@@ -123,7 +123,7 @@ export function Hero() {
             {/* Animated content that changes with slides */}
             <div
               key={`${currentSlide}-${isVisible}`}
-              className={`transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              className={`transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] gap-5 flex flex-col ${
                 isVisible
                   ? "opacity-100 transform translate-x-0 translate-y-0"
                   : "opacity-0 transform -translate-x-5 translate-y-2"
@@ -154,22 +154,7 @@ export function Hero() {
                   ))}
               </h1>
 
-              <h2 className="text-xl sm:text-2xl md:text-3xl text-gold font-medium ">
-                <span className="inline-block overflow-hidden">
-                  <span
-                    className="inline-block transition-all duration-500 ease-[cubic-bezier(0.5,1,0.89,1)]"
-                    style={{
-                      transform: isVisible
-                        ? "translateY(0)"
-                        : "translateY(20px)",
-                      opacity: isVisible ? 1 : 0,
-                      transitionDelay: "0.2s",
-                    }}>
-                    {heroSlides[currentSlide].subtitle}
-                  </span>
-                </span>
-              </h2>
-
+             
               <p className="text-lg sm:text-xl text-white/90 leading-relaxed w-[540px]">
                 <span className="inline-block overflow-hidden">
                   <span
