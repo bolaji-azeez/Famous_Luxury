@@ -1,51 +1,65 @@
 "use client";
-import { Play, Pause } from "lucide-react";
 import { useState, useRef } from "react";
+import { Play, Pause } from "lucide-react";
 
-const VideoDisplaySection = () => {
+export default function VideoDisplaySection() {
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+    } else {
+      videoRef.current.play();
     }
+    setIsPlaying(!isPlaying);
   };
 
   return (
-    <div className="w-full bg-[#232c3b] pt-15 pb-15">
-      {/* Video Container */}
-      <div className="relative  aspect-video max-w-2xl mx-auto rounded-sm">
-        {/* Video Element */}
-        <video
-          ref={videoRef}
-          src="/71a833516636291a8842a2e8573e48d087d46ed5.f30.mp4" // Ensure this file is in your public directory
-          className="w-full h-full object-cover rounded-sm"
-          onClick={togglePlay}
-          poster="/images/bluerray.webp" // Add poster image
-        />
+    <section className="relative w-full h-[70vh] md:h-[90vh] overflow-hidden">
+      {/* Video Background */}
+      <video
+        ref={videoRef}
+        className="absolute inset-0 w-full h-full object-cover"
+        src="/71a833516636291a8842a2e8573e48d087d46ed5.f30.mp4"
+        poster="/images/bluerray.webp"
+        muted
+        loop
+        playsInline
+      />
 
-        {/* Play/Pause Button */}
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-black/40"></div>
+
+      {/* Content Overlay */}
+      <div className="relative z-10 h-full flex flex-col items-center justify-center text-center text-white px-6">
+        <h1 className="text-3xl md:text-5xl font-bold mb-4 drop-shadow-lg">
+          Experience Ultimate Luxury
+        </h1>
+        <p className="text-base md:text-lg max-w-xl mx-auto mb-6 opacity-90">
+          Watch our latest collection of exclusive timepieces and premium accessories.
+        </p>
         <button
           onClick={togglePlay}
-          className={`absolute inset-0 m-auto flex items-center justify-center w-16 h-16 rounded-full bg-black bg-opacity-50 transition-opacity ${
-            isPlaying ? "opacity-0 hover:opacity-100" : "opacity-100"
-          }`}
-          aria-label={isPlaying ? "Pause" : "Play"}>
-          {isPlaying ? (
-            <Pause className="w-8 h-8 text-white fill-white" />
-          ) : (
-            <Play className="w-8 h-8 text-white fill-white" />
-          )}
+          className="bg-[#a77354] hover:bg-[#8a5c40] text-white px-6 py-3 rounded-full text-sm md:text-base font-medium transition-all shadow-lg">
+          {isPlaying ? "Pause Video" : "Play Video"}
         </button>
       </div>
-    </div>
-  );
-};
 
-export default VideoDisplaySection;
+      {/* Floating Play/Pause Button */}
+      <button
+        onClick={togglePlay}
+        className={`absolute bottom-5 right-5 w-12 h-12 rounded-full flex items-center justify-center bg-black/50 hover:bg-black/70 transition-opacity duration-300 ${
+          isPlaying ? "opacity-0 hover:opacity-100" : "opacity-100"
+        }`}
+        aria-label={isPlaying ? "Pause" : "Play"}>
+        {isPlaying ? (
+          <Pause className="w-6 h-6 text-white" />
+        ) : (
+          <Play className="w-6 h-6 text-white" />
+        )}
+      </button>
+    </section>
+  );
+}

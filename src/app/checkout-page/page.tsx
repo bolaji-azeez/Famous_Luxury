@@ -7,13 +7,14 @@ import { useCart } from "../components/context/cardContext";
 import Link from "next/link";
 import { PiArrowLeft } from "react-icons/pi";
 import { CartItem } from "@/types";
+import Image from "next/image";
 
 export default function CheckoutPage() {
-   const { cart = [], cartItemCount = 0 } = useCart() || {};
-  
-  // Safely calculate totals
-  const subtotal = (cart || []).reduce(
-    (sum: number, item: CartItem) => sum + (item?.price || 0) * (item?.quantity || 0), 
+  const { cart = [], cartItemCount = 0 } = useCart() || {};
+
+  const subtotal = cart.reduce(
+    (sum: number, item: CartItem) =>
+      sum + (item?.price || 0) * (item?.quantity || 0),
     0
   );
   const shipping = 5.0;
@@ -21,10 +22,13 @@ export default function CheckoutPage() {
   const total = subtotal + shipping + tax;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-8 px-6 sm:px-8 lg:px-8">
       <div className="max-w-6xl mx-auto">
+        {/* Back Button */}
         <div className="mb-8">
-          <Link href="/cart" className="flex items-center text-[#a77354] hover:text-black">
+          <Link
+            href="/cart"
+            className="flex items-center text-[#a77354] hover:text-black">
             <PiArrowLeft className="mr-2" />
             Back to Cart
           </Link>
@@ -33,94 +37,37 @@ export default function CheckoutPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Form */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Contact Information</h2>
-            
-            <form className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="first-name" className="block text-sm font-medium text-gray-700 mb-1">
-                    First Name
-                  </label>
-                  <Input id="first-name" type="text" required />
-                </div>
-                <div>
-                  <label htmlFor="last-name" className="block text-sm font-medium text-gray-700 mb-1">
-                    Last Name
-                  </label>
-                  <Input id="last-name" type="text" required />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                <Input id="email" type="email" required />
-              </div>
-
-              <div>
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                  Shipping Address
-                </label>
-                <Input id="address" type="text" required />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                    City
-                  </label>
-                  <Input id="city" type="text" required />
-                </div>
-                <div>
-                  <label htmlFor="zip" className="block text-sm font-medium text-gray-700 mb-1">
-                    ZIP Code
-                  </label>
-                  <Input id="zip" type="text" required />
-                </div>
-              </div>
-
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Payment Method</h2>
-                <RadioGroup defaultValue="card" className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <RadioGroupItem value="card" id="card" />
-                    <label htmlFor="card" className="text-sm font-medium leading-none">
-                      Credit/Debit Card
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <RadioGroupItem value="paypal" id="paypal" />
-                    <label htmlFor="paypal" className="text-sm font-medium leading-none">
-                      PayPal
-                    </label>
-                  </div>
-                </RadioGroup>
-              </div>
-            </form>
-          </div>
-
-          {/* Right Column - Order Summary */}
-          <div className="space-y-6">
+          {/* Right Column - Order Summary (First on Mobile) */}
+          <div className="space-y-6 order-1 lg:order-2">
             <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
-              
+              <h2 className="text-xl font-bold text-gray-900 mb-6">
+                Order Summary
+              </h2>
               <div className="space-y-4">
                 {cart.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between">
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div className="w-16 h-16 bg-gray-100 rounded-md overflow-hidden">
-                        {/* Replace with your Image component */}
-                        <img src={item.image} alt={item.title} className="object-cover w-full h-full" />
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          className="object-cover w-full h-full"
+                        />
                       </div>
                       <div>
-                        <h3 className="font-medium text-gray-900">{item.title}</h3>
-                        <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                        <h3 className="font-medium text-gray-900">
+                          {item.name}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          Qty: {item.quantity}
+                        </p>
                       </div>
                     </div>
-                    <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="font-medium txet-grey-900">
+                      ${(item.price * item.quantity).toFixed(2)}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -151,19 +98,109 @@ export default function CheckoutPage() {
               </Button>
 
               <p className="text-xs text-gray-500 mt-4 text-center">
-                By placing your order, you agree to our Terms of Service and Privacy Policy.
+                By placing your order, you agree to our Terms of Service and
+                Privacy Policy.
               </p>
             </div>
 
             <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Need Help?</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Need Help?
+              </h2>
               <p className="text-gray-600 mb-4">
-                Contact our customer support team for assistance with your order.
+                Contact our customer support team for assistance with your
+                order.
               </p>
-              <Button variant="outline" className="w-full text-[#a77354] border-[#a77354] hover:bg-[#f8f1eb]">
+              <Button
+                variant="outline"
+                className="w-full text-[#a77354] border-[#a77354] hover:bg-[#f8f1eb]">
                 Contact Support
               </Button>
             </div>
+          </div>
+
+          {/* Left Column - Contact and Payment Form */}
+          <div className="bg-white rounded-xl shadow-lg p-6 order-2 lg:order-1">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">
+              Contact Information
+            </h2>
+            <form className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="first-name"
+                    className="block text-sm font-medium text-gray-700 mb-1">
+                    First Name
+                  </label>
+                  <Input id="first-name" type="text" required />
+                </div>
+                <div>
+                  <label
+                    htmlFor="last-name"
+                    className="block text-sm font-medium text-gray-700 mb-1">
+                    Last Name
+                  </label>
+                  <Input id="last-name" type="text" required />
+                </div>
+              </div>
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <Input id="email" type="email" required />
+              </div>
+              <div>
+                <label
+                  htmlFor="address"
+                  className="block text-sm font-medium text-gray-700 mb-1">
+                  Shipping Address
+                </label>
+                <Input id="address" type="text" required />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="city"
+                    className="block text-sm font-medium text-gray-700 mb-1">
+                    City
+                  </label>
+                  <Input id="city" type="text" required />
+                </div>
+                <div>
+                  <label
+                    htmlFor="zip"
+                    className="block text-sm font-medium text-gray-700 mb-1">
+                    ZIP Code
+                  </label>
+                  <Input id="zip" type="text" required />
+                </div>
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">
+                  Payment Method
+                </h2>
+                <RadioGroup defaultValue="card" className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <RadioGroupItem value="card" id="card" />
+                    <label
+                      htmlFor="card"
+                      className="text-sm font-medium leading-none">
+                      Credit/Debit Card
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <RadioGroupItem value="paypal" id="paypal" />
+                    <label
+                      htmlFor="paypal"
+                      className="text-sm font-medium leading-none">
+                      PayPal
+                    </label>
+                  </div>
+                </RadioGroup>
+              </div>
+            </form>
           </div>
         </div>
       </div>

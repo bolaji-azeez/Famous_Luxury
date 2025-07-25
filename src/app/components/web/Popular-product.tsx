@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useCart } from "../context/cardContext";
 
 interface Product {
   id: number;
@@ -31,6 +32,7 @@ const products: Product[] = [
     discountPercentage: 12,
     image: "/images/teclast-tablet.png",
     hoverImage: "/images/teclast-tablet-hover.png",
+   
   },
   {
     id: 3,
@@ -80,8 +82,13 @@ const products: Product[] = [
 ];
 
 export default function PopularProducts() {
-  const [touchedProduct, setTouchedProduct] = useState<number | null>(null);
+  const { addToCart } = useCart();
   const [isMobile, setIsMobile] = useState(false);
+  const [flippedCards, setFlippedCards] = useState<number[]>([]);
+  const [notification, setNotification] = useState({
+    show: false,
+    productId: null,
+  });
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -92,16 +99,46 @@ export default function PopularProducts() {
     return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
-  const handleQuickView = (productId: number) => {
-    console.log("Quick view:", productId);
+  const handleCardFlip = (productId: number) => {
+    if (!isMobile) return;
+
+    setFlippedCards((prev) =>
+      prev.includes(productId)
+        ? prev.filter((id) => id !== productId)
+        : [...prev, productId]
+    );
   };
 
-  const handleAddToCart = (productId: number) => {
-    console.log("Add to cart:", productId);
+  const handleQuickView = (productId: number) => {
+    // Implement your quick view logic here
+    console.log("Quick view for product:", productId);
+    // Typically you would:
+    // 1. Open a modal
+    // 2. Fetch more product details
+    // 3. Show enlarged images and more info
+  };
+
+  const handleAddToCart = (product: Product) => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      quantity: 1,
+    });
+
+    setNotification({ show: true, productId: product.id });
+    setTimeout(() => setNotification({ show: false, productId: null }), 2000);
   };
 
   return (
-    <section className="px-4 py-10 md:px-10 w-full mx-auto bg-[#fafbfc]">
+    <section className="px-4 py-10 md:px-10 w-full mx-auto bg-[#fafbfc] relative">
+      {notification.show && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md z-50 animate-fade-in-out">
+          Added to cart!
+        </div>
+      )}
+
       <div className="max-w-[85%] mx-auto">
         <div className="mb-8 flex items-center">
           <div className="w-1 h-6 bg-[#a77354] mr-3 rounded-full" />
@@ -110,44 +147,60 @@ export default function PopularProducts() {
 
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {products.map((product) => {
-            const isTouched = touchedProduct === product.id;
+            const isFlipped = flippedCards.includes(product.id);
 
             return (
-              <div
-                key={product.id}
-                className="group relative"
-                onTouchStart={() => setTouchedProduct(product.id)}
-                onTouchEnd={() =>
-                  setTimeout(() => setTouchedProduct(null), 1200)
-                }>
-                <div className="relative aspect-square mb-3 overflow-hidden rounded">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    className={`object-cover transition-opacity duration-300 ${
-                      isTouched ? "opacity-0" : "group-hover:opacity-0"
-                    }`}
-                  />
-                  <Image
-                    src={product.hoverImage || product.image}
-                    alt={`${product.name} hover`}
-                    fill
-                    className={`object-cover transition-opacity duration-300 ${
-                      isTouched
-                        ? "opacity-100"
+              <div key={product.id} className="group relative">
+                {/* Mobile Flip Card Container */}
+                <div
+                  className={`relative aspect-square mb-3 overflow-hidden rounded transition-all duration-500 ${
+                    isMobile ? "cursor-pointer" : ""
+                  }`}
+                  onClick={() => isMobile && handleCardFlip(product.id)}>
+                  {/* Front of Card (Main Image) */}
+                  <div
+                    className={`absolute inset-0 transition-opacity duration-300 ${
+                      isMobile
+                        ? isFlipped
+                          ? "opacity-0"
+                          : "opacity-100"
+                        : "group-hover:opacity-0"
+                    }`}>
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+
+                  {/* Back of Card (Hover Image + Quick View) */}
+                  <div
+                    className={`absolute inset-0 transition-opacity duration-300 ${
+                      isMobile
+                        ? isFlipped
+                          ? "opacity-100"
+                          : "opacity-0"
                         : "opacity-0 group-hover:opacity-100"
-                    }`}
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleQuickView(product.id);
-                      }}
-                      className="bg-white text-black px-4 py-2 rounded-md text-sm font-medium">
-                      Quick View
-                    </button>
+                    }`}>
+                    <Image
+                      src={product.hoverImage || product.image}
+                      alt={`${product.name} hover`}
+                      fill
+                      className="object-cover"
+                    />
+                    <Link href="/detail">
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleQuickView(product.id);
+                          }}
+                          className="bg-white text-black px-4 py-2 rounded-md text-sm font-medium">
+                          Quick View
+                        </button>
+                      </div>
+                    </Link>
                   </div>
                 </div>
 
@@ -169,10 +222,8 @@ export default function PopularProducts() {
 
                 <div className="px-2 pb-2">
                   <button
-                    onClick={() => handleAddToCart(product.id)}
-                    className={`w-full bg-black text-white py-2 rounded-md text-sm hover:bg-gray-800 transition-colors ${
-                      isMobile && !isTouched ? "hidden" : "block"
-                    }`}>
+                    onClick={() => handleAddToCart(product)}
+                    className="w-full bg-black text-white py-2 rounded-md text-sm hover:bg-gray-800 transition-colors">
                     Add to Cart
                   </button>
                 </div>

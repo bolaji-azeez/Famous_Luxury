@@ -209,6 +209,19 @@ const BrandSections = () => {
     setFilteredBrands(filtered.length > 0 ? filtered : ["OUT OF STOCK"]);
   }, [searchQuery]);
 
+  useEffect(() => {
+  const viewedProducts = JSON.parse(localStorage.getItem("recentlyViewed") || "[]");
+  const currentProduct = {
+    id: "cartier-rolex",
+    name: "Cartier Rolex",
+    price: 200,
+    image: {Image},
+  };
+  const updated = [currentProduct, ...viewedProducts.filter((p: any) => p.id !== currentProduct.id)].slice(0, 6);
+  localStorage.setItem("recentlyViewed", JSON.stringify(updated));
+}, [Image]);
+
+
   return (
     <main className="bg-[#f9fafb] min-h-screen flex flex-col items-center">
       <Banner

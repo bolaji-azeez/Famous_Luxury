@@ -1,17 +1,23 @@
-'use client';
+"use client";
 
 import React, { ReactNode } from "react";
 import "./globals.css";
 import Header from "./static/header";
 import Footer from "./static/footer";
 import { CartProvider } from "./components/context/cardContext";
-
+import { usePathname } from "next/navigation";
 
 interface RootLayoutProps {
   children: ReactNode;
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
+  const pathname = usePathname();
+
+  // List of routes where you don't want Header/Footer
+  const hideHeaderFooter =
+    pathname.startsWith("/login") || pathname.startsWith("/signup");
+
   return (
     <html lang="en">
       <head>
@@ -27,10 +33,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
             background: "linear-gradient(95deg, #000000 0%, #1A1A2E 100%)",
             color: "#ffffff",
           }}>
-          <Header />
-         
+          {!hideHeaderFooter && <Header />}
+
           <main className="flex-grow">{children}</main>
-          <Footer />
+          {!hideHeaderFooter && <Footer />}
         </body>
       </CartProvider>
     </html>
