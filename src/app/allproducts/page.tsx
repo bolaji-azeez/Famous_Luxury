@@ -27,11 +27,68 @@ const allProductsByBrand = {
   Casio: [
     {
       id: 1,
-      name: "Casio Classic",
-      price: 59.99,
-      image: "/images/cartiergold.webp",
-      hoverImage:
-        "/images/dc3bdd3c05f257f5b216fc83a0a73794.png-removebg-preview.png",
+      name: "Apple Watch Series 8",
+      price: 188.0,
+      image: "/image/shoc1.jpg",
+      hoverImage: "/image/shoc16.jpg",
+    },
+    {
+      id: 2,
+      name: "TECLAST Tablet Protective Cover Case",
+      price: 791.12,
+      oldPrice: 899.0,
+      discountPercentage: 12,
+      image: "/image/shoc2.jpg",
+      hoverImage: "/image/shoc15.jpg",
+    },
+    {
+      id: 3,
+      name: "ViewSonic Professional Monitor",
+      price: 281.06,
+      oldPrice: 299.0,
+      discountPercentage: 6,
+      image: "/image/shoc3.jpg",
+      hoverImage: "/image/shoc14.jpg",
+    },
+    {
+      id: 4,
+      name: "Buy Guild Planer - 900w",
+      price: 239.0,
+      image: "/image/shoc4.jpg",
+      hoverImage: "/image/shoc12.jpg",
+    },
+    {
+      id: 5,
+      name: "Wireless Earbuds",
+      price: 49.99,
+      image: "/image/shoc5.jpg",
+      hoverImage: "/image/shoc11.jpg",
+    },
+    {
+      id: 6,
+      name: "Portable Bluetooth Speaker",
+      price: 75.0,
+      oldPrice: 90.0,
+      image: "/image/shoc6.jpg",
+      hoverImage: "/image/shoc10.jpg",
+    },
+    {
+      id: 7,
+      name: "Portable Bluetooth Speaker",
+      price: 75.0,
+      oldPrice: 90.0,
+      discountPercentage: 17,
+      image: "/image/shcoc7.jpg",
+      hoverImage: "/image/shoc9.jpg",
+    },
+    {
+      id: 8,
+      name: "Portable Bluetooth Speaker",
+      price: 75.0,
+      oldPrice: 90.0,
+      discountPercentage: 17,
+      image: "/image/shoc8.jpg",
+      hoverImage: "/image/shoc6.jpg",
     },
     // ... rest of Casio products
   ],
@@ -44,7 +101,7 @@ const allProductsByBrand = {
       hoverImage: "/images/gucci1-hover.jpg",
       link: "/cart",
     },
-     {
+    {
       id: 11,
       name: "Gucci Leather Bag",
       price: 890.0,
@@ -52,7 +109,7 @@ const allProductsByBrand = {
       hoverImage: "/images/gucci1-hover.jpg",
       link: "/cart",
     },
-     {
+    {
       id: 12,
       name: "Gucci Leather Bag",
       price: 890.0,
@@ -60,7 +117,7 @@ const allProductsByBrand = {
       hoverImage: "/images/gucci1-hover.jpg",
       link: "/cart",
     },
-     {
+    {
       id: 13,
       name: "Gucci Leather Bag",
       price: 890.0,
@@ -79,7 +136,7 @@ const allProductsByBrand = {
       hoverImage: "/images/cartier1-hover.jpg",
       link: "/cart",
     },
-     {
+    {
       id: 21,
       name: "Cartier Tank",
       price: 200.0,
@@ -87,7 +144,7 @@ const allProductsByBrand = {
       hoverImage: "/images/cartier1-hover.jpg",
       link: "/cart",
     },
-     {
+    {
       id: 22,
       name: "Cartier Tank",
       price: 20.0,
@@ -95,7 +152,7 @@ const allProductsByBrand = {
       hoverImage: "/images/cartier1-hover.jpg",
       link: "/cart",
     },
-     {
+    {
       id: 23,
       name: "Cartier Tank",
       price: 200.0,
@@ -210,25 +267,27 @@ const BrandSections = () => {
   }, [searchQuery]);
 
   useEffect(() => {
-  const viewedProducts = JSON.parse(localStorage.getItem("recentlyViewed") || "[]");
-  const currentProduct = {
-    id: "cartier-rolex",
-    name: "Cartier Rolex",
-    price: 200,
-    image: {Image},
-  };
-  const updated = [currentProduct, ...viewedProducts.filter((p: any) => p.id !== currentProduct.id)].slice(0, 6);
-  localStorage.setItem("recentlyViewed", JSON.stringify(updated));
-}, [Image]);
-
+    const viewedProducts = JSON.parse(
+      localStorage.getItem("recentlyViewed") || "[]"
+    );
+    const currentProduct = {
+      id: "cartier-rolex",
+      name: "Cartier Rolex",
+      price: 200,
+      image: { Image },
+    };
+    const updated = [
+      currentProduct,
+      ...viewedProducts.filter((p: any) => p.id !== currentProduct.id),
+    ].slice(0, 6);
+    localStorage.setItem("recentlyViewed", JSON.stringify(updated));
+  }, [Image]);
 
   return (
     <main className="bg-[#f9fafb] min-h-screen flex flex-col items-center">
       <Banner
         title="All Products"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-        ]}
+        breadcrumbs={[{ label: "Home", href: "/" }]}
         titleColor="#a77354"
       />
 
