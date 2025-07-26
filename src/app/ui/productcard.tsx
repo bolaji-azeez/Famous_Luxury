@@ -97,10 +97,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Hot New & Discount Labels */}
         <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
           <span className="bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded">
-            Hot New
-          </span>
-          <span className="bg-yellow-400 text-black text-xs font-semibold px-2 py-1 rounded">
-            20% Discount
+            New
           </span>
         </div>
 

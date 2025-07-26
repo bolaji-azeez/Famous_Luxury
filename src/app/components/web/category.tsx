@@ -18,25 +18,16 @@ const productItems: ProductGridItem[] = [
     id: 1,
     title: "Luxury Watches",
     subtitle: "Sale up to 30% Off",
-    image: "/images/cartiergold.webp",
+    image: "/images/card5.avif",
     buttonText: "Shop Now",
   },
   {
     id: 2,
     title: "Luxury Glasses",
     discount: "20% Off",
-    image: "/images/fresh.webp",
+    image: "/images/glasses.avif",
   },
-  {
-    id: 3,
-    title: "G-shock Series",
-    image: "/images/G-shock.png",
-  },
-  {
-    id: 4,
-    title: "Cartier",
-    image: "/images/dc3bdd3c05f257f5b216fc83a0a73794.png-removebg-preview.png",
-  },
+ 
 ];
 
 const Category: FC = () => {
@@ -45,13 +36,13 @@ const Category: FC = () => {
   };
 
   return (
-    <section className="px-4 py-8 md:px-8 mx-auto w-full bg-[#fafbfc]">
+    <section className="px-4 py-12 md:px-8 mx-auto w-full bg-[#fafbfc]">
       {/* Desktop Grid - 2 columns x 2 rows */}
-      <div className="hidden md:grid grid-cols-2 grid-rows-2 gap-6 w-[85%] mx-auto">
+      <div className="hidden md:grid grid-cols-2  gap-6 w-[85%] mx-auto">
         {productItems.map((item) => (
           <motion.div
             key={item.id}
-            className="relative rounded-2xl overflow-hidden cursor-pointer h-[280px]"
+            className="relative rounded-sm overflow-hidden cursor-pointer h-[450px]"
             initial={false}
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 300, damping: 15 }}

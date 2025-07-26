@@ -21,8 +21,8 @@ const products: Product[] = [
     id: 1,
     name: "Apple Watch Series 8",
     price: 188.0,
-    image: "/images/apple-watch.png",
-    hoverImage: "/images/apple-watch-hover.png",
+    image: "/image/shoc1.jpg",
+    hoverImage: "/image/shoc16.jpg",
   },
   {
     id: 2,
@@ -30,9 +30,8 @@ const products: Product[] = [
     price: 791.12,
     oldPrice: 899.0,
     discountPercentage: 12,
-    image: "/images/teclast-tablet.png",
-    hoverImage: "/images/teclast-tablet-hover.png",
-   
+    image: "/image/shoc2.jpg",
+    hoverImage: "/image/shoc15.jpg",
   },
   {
     id: 3,
@@ -40,28 +39,30 @@ const products: Product[] = [
     price: 281.06,
     oldPrice: 299.0,
     discountPercentage: 6,
-    image: "/images/viewsonic-monitor.png",
-    hoverImage: "/images/viewsonic-monitor-hover.png",
+    image: "/image/shoc3.jpg",
+    hoverImage: "/image/shoc14.jpg",
   },
   {
     id: 4,
     name: "Buy Guild Planer - 900w",
     price: 239.0,
-    image: "/images/guild-planer.png",
+    image: "/image/shoc4.jpg",
+    hoverImage: "/image/shoc12.jpg",
   },
   {
     id: 5,
     name: "Wireless Earbuds",
     price: 49.99,
-    image: "/placeholder.svg?height=200&width=200",
+  image: "/image/shoc5.jpg",
+    hoverImage: "/image/shoc11.jpg",
   },
   {
     id: 6,
     name: "Portable Bluetooth Speaker",
     price: 75.0,
     oldPrice: 90.0,
-    discountPercentage: 17,
-    image: "/placeholder.svg?height=200&width=200",
+    image: "/image/shoc6.jpg",
+    hoverImage: "/image/shoc10.jpg",
   },
   {
     id: 7,
@@ -69,7 +70,8 @@ const products: Product[] = [
     price: 75.0,
     oldPrice: 90.0,
     discountPercentage: 17,
-    image: "/placeholder.svg?height=200&width=200",
+    image: "/image/shoc7.jpg",
+    hoverImage: "/image/shoc9.jpg",
   },
   {
     id: 8,
@@ -77,7 +79,8 @@ const products: Product[] = [
     price: 75.0,
     oldPrice: 90.0,
     discountPercentage: 17,
-    image: "/placeholder.svg?height=200&width=200",
+   image: "/image/shoc8.jpg",
+    hoverImage: "/image/shoc6.jpg",
   },
 ];
 
@@ -101,7 +104,6 @@ export default function PopularProducts() {
 
   const handleCardFlip = (productId: number) => {
     if (!isMobile) return;
-
     setFlippedCards((prev) =>
       prev.includes(productId)
         ? prev.filter((id) => id !== productId)
@@ -110,12 +112,7 @@ export default function PopularProducts() {
   };
 
   const handleQuickView = (productId: number) => {
-    // Implement your quick view logic here
     console.log("Quick view for product:", productId);
-    // Typically you would:
-    // 1. Open a modal
-    // 2. Fetch more product details
-    // 3. Show enlarged images and more info
   };
 
   const handleAddToCart = (product: Product) => {
@@ -151,6 +148,16 @@ export default function PopularProducts() {
 
             return (
               <div key={product.id} className="group relative">
+                {/* Hot New & Discount Labels */}
+                <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+                  <span className="bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded">
+                    Hot
+                  </span>
+                  <span className="bg-yellow-400 text-black text-xs font-semibold px-2 py-1 rounded">
+                    -20% Discount
+                  </span>
+                </div>
+
                 {/* Mobile Flip Card Container */}
                 <div
                   className={`relative aspect-square mb-3 overflow-hidden rounded transition-all duration-500 ${
@@ -204,6 +211,7 @@ export default function PopularProducts() {
                   </div>
                 </div>
 
+                {/* Product Info */}
                 <div className="p-2">
                   <h3 className="text-sm font-medium text-gray-900 line-clamp-1">
                     {product.name}
@@ -220,6 +228,7 @@ export default function PopularProducts() {
                   </div>
                 </div>
 
+                {/* Add to Cart Button */}
                 <div className="px-2 pb-2">
                   <button
                     onClick={() => handleAddToCart(product)}
