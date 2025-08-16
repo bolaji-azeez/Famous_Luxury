@@ -142,6 +142,22 @@ export  interface ProductCardProps {
   };
 }
 
+export interface Brand {
+  _id: string;
+  name: string;
+  productsCount?: number;
+  status?: "active" | "inactive";
+}
+
+
+export interface BrandState {
+  items: [];
+  status: "idle" | "loading" | "succeeded" | "failed";
+  error: string | null;
+  page: number;
+  totalPages: number;
+}
+
 
 
 

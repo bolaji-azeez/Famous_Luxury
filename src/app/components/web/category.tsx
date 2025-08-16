@@ -18,7 +18,7 @@ const productItems: ProductGridItem[] = [
     id: 1,
     title: "Luxury Watches",
     subtitle: "Sale up to 30% Off",
-    image: "/images/card5.avif",
+    image: "/image/category.jpg",
     buttonText: "Shop Now",
   },
   {
@@ -27,7 +27,6 @@ const productItems: ProductGridItem[] = [
     discount: "20% Off",
     image: "/images/glasses.avif",
   },
- 
 ];
 
 const Category: FC = () => {
@@ -48,7 +47,7 @@ const Category: FC = () => {
             transition={{ type: "spring", stiffness: 300, damping: 15 }}
             onClick={() => handleProductClick(item.id)}
             style={{
-              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('${item.image}')`,
+              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2)), url('${item.image}')`,
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}>
