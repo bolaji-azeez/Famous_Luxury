@@ -38,25 +38,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   }, []);
 
   // Auto-flip effect on scroll into view
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const timer = setTimeout(() => {
-              setFlipped(true);
-              setTimeout(() => setFlipped(false), 3000);
-            }, 3000);
-            return () => clearTimeout(timer);
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
-
-    if (cardRef.current) observer.observe(cardRef.current);
-    return () => observer.disconnect();
-  }, []);
+ 
 
   const handleAddToCart = () => {
     addToCart({

@@ -1,4 +1,4 @@
-"use client";
+// "use client"; // Typically for Next.js App Router, ensure it's at the top if needed.
 
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -116,19 +116,17 @@ export function Hero() {
         ))}
       </div>
 
-      {/* Hero Content - Positioned higher up */}
-      <div className="z-10 min-h-screen flex items-start pt-32">
-        <div className="mx-auto px-4 sm:px-6 lg:px-8 w-[85%]">
-          <div className="max-w-3xl">
+      {/* Hero Content - Centered */}
+      {/* Use flex column, justify-center, items-center for perfect centering */}
+      <div className="z-10 absolute inset-0 flex flex-col justify-center items-center">
+        <div className="container w-[85%] mx-auto px-4 text-center"> {/* Added text-center here */}
+          <div className="max-w-3xl mx-auto"> {/* Ensure max-width on the content itself */}
             {/* Animated content that changes with slides */}
             <div
               key={`${currentSlide}-${isVisible}`}
-              className={`transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] gap-5 flex flex-col ${
-                isVisible
-                  ? "opacity-100 transform translate-x-0 translate-y-0"
-                  : "opacity-0 transform -translate-x-5 translate-y-2"
-              } text-left sm:text-left`}>
-              <h1 className="text-6xl font-bold ">
+              className={`transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] gap-5 flex flex-col items-center`} // Changed text-left to items-center
+              >
+              <h1 className="text-6xl font-bold mb-4"> {/* Added bottom margin */}
                 {heroSlides[currentSlide].title
                   .split(" ")
                   .map((word, wordIndex) => (
@@ -154,8 +152,7 @@ export function Hero() {
                   ))}
               </h1>
 
-             
-              <p className="text-lg sm:text-xl text-white/90 leading-relaxed w-[540px]">
+              <p className="text-lg sm:text-xl text-white/90 leading-relaxed mb-8 max-w-lg mx-auto"> {/* Added bottom margin and max-width */}
                 <span className="inline-block overflow-hidden">
                   <span
                     className="inline-block transition-all duration-500 ease-[cubic-bezier(0.5,1,0.89,1)]"

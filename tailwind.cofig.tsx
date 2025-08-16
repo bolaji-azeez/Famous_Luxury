@@ -1,5 +1,5 @@
-import type { Config } from "tailwindcss"
-import defaultConfig from "tailwindcss/defaultConfig"
+import type { Config } from "tailwindcss";
+import defaultConfig from "tailwindcss/defaultConfig";
 
 const config: Config = {
   ...defaultConfig,
@@ -14,13 +14,27 @@ const config: Config = {
     ...defaultConfig.theme,
     extend: {
       fontFamily: {
-        sans: ["Poiret One", "Inter", "sans-serif"], // Default font
-        playfair: ["Playfair Display", "serif"],
-        inter: ["Inter", "sans-serif"],
-        poiret: ["Poiret One", "sans-serif"], // Custom class
+        sans: ["Lato", "sans-serif"], // Default sans-serif font
+        serif: ["Playfair Display", "serif"], // Custom class
       },
       colors: {
         ...defaultConfig.theme.extend.colors,
+
+        primary: {
+          DEFAULT: "#D4AF37", // Example Gold color
+          hover: "#B89B30",
+        },
+        gray: {
+          100: "#f7f7f7",
+          200: "#e0e0e0",
+          300: "#c7c7c7",
+          400: "#a0a0a0",
+          500: "#757575",
+          600: "#5a5a5a",
+          700: "#424242",
+          800: "#212121", // Dark background
+          900: "#121212", // Even darker background
+        },
         luxury: {
           gold: "#D4AF37",
           "gold-light": "#F4E4BC",
@@ -52,7 +66,11 @@ const config: Config = {
       },
     },
   },
-  plugins: [...defaultConfig.plugins, require("tailwindcss-animate")],
-}
+  plugins: [
+    ...defaultConfig.plugins,
+    "tailwindcss-animate",
+    "@tailwindcss/forms",
+  ],
+};
 
-export default config
+export default config;

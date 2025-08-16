@@ -154,7 +154,7 @@ export default function PopularProducts() {
                     Hot
                   </span>
                   <span className="bg-yellow-400 text-black text-xs font-semibold px-2 py-1 rounded">
-                    -20% Discount
+                    -20% 
                   </span>
                 </div>
 
