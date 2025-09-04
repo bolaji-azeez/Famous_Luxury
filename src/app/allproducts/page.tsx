@@ -1,9 +1,23 @@
 "use client";
-import ProductCard from "../ui/productcard";
-import { useEffect, useRef, useState } from "react";
+
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import Banner from "../ui/Banner";
 import { FiSearch } from "react-icons/fi";
+import Banner from "../ui/Banner";
+import ProductCard from "../ui/productcard";
+
+import {
+  useGetBrandsQuery,
+  useLazyGetBrandDetailsAndProductsQuery,
+} from "@/features/brand/brandApi";
+
+function slugifyName(name: string, id?: string) {
+  const base = (name || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+  return id ? `${base}-${id.slice(-6)}` : base;
+}
 
 const ProductCardSkeleton = () => (
   <motion.div
@@ -23,193 +37,42 @@ const ProductCardSkeleton = () => (
   </motion.div>
 );
 
-const allProductsByBrand = {
-  Casio: [
-    {
-      id: 1,
-      name: "Apple Watch Series 8",
-      price: 188.0,
-      image: "/image/shoc1.jpg",
-      hoverImage: "/image/shoc16.jpg",
-    },
-    {
-      id: 2,
-      name: "TECLAST Tablet Protective Cover Case",
-      price: 791.12,
-      oldPrice: 899.0,
-      discountPercentage: 12,
-      image: "/image/shoc2.jpg",
-      hoverImage: "/image/shoc15.jpg",
-    },
-    {
-      id: 3,
-      name: "ViewSonic Professional Monitor",
-      price: 281.06,
-      oldPrice: 299.0,
-      discountPercentage: 6,
-      image: "/image/shoc3.jpg",
-      hoverImage: "/image/shoc14.jpg",
-    },
-    {
-      id: 4,
-      name: "Buy Guild Planer - 900w",
-      price: 239.0,
-      image: "/image/shoc4.jpg",
-      hoverImage: "/image/shoc12.jpg",
-    },
-    {
-      id: 5,
-      name: "Wireless Earbuds",
-      price: 49.99,
-      image: "/image/shoc5.jpg",
-      hoverImage: "/image/shoc11.jpg",
-    },
-    {
-      id: 6,
-      name: "Portable Bluetooth Speaker",
-      price: 75.0,
-      oldPrice: 90.0,
-      image: "/image/shoc6.jpg",
-      hoverImage: "/image/shoc10.jpg",
-    },
-    {
-      id: 7,
-      name: "Portable Bluetooth Speaker",
-      price: 75.0,
-      oldPrice: 90.0,
-      discountPercentage: 17,
-      image: "/image/shcoc7.jpg",
-      hoverImage: "/image/shoc9.jpg",
-    },
-    {
-      id: 8,
-      name: "Portable Bluetooth Speaker",
-      price: 75.0,
-      oldPrice: 90.0,
-      discountPercentage: 17,
-      image: "/image/shoc8.jpg",
-      hoverImage: "/image/shoc6.jpg",
-    },
-    // ... rest of Casio products
-  ],
-  Gucci: [
-    {
-      id: 10,
-      name: "Gucci Leather Bag",
-      price: 890.0,
-      image: "/images/gucci1.jpg",
-      hoverImage: "/images/gucci1-hover.jpg",
-      link: "/cart",
-    },
-    {
-      id: 11,
-      name: "Gucci Leather Bag",
-      price: 890.0,
-      image: "/images/gucci1.jpg",
-      hoverImage: "/images/gucci1-hover.jpg",
-      link: "/cart",
-    },
-    {
-      id: 12,
-      name: "Gucci Leather Bag",
-      price: 890.0,
-      image: "/images/gucci1.jpg",
-      hoverImage: "/images/gucci1-hover.jpg",
-      link: "/cart",
-    },
-    {
-      id: 13,
-      name: "Gucci Leather Bag",
-      price: 890.0,
-      image: "/images/gucci1.jpg",
-      hoverImage: "/images/gucci1-hover.jpg",
-      link: "/cart",
-    },
-    // ... rest of Gucci products
-  ],
-  Cartier: [
-    {
-      id: 20,
-      name: "Cartier Tank",
-      price: 2500.0,
-      image: "/images/cartier1.jpg",
-      hoverImage: "/images/cartier1-hover.jpg",
-      link: "/cart",
-    },
-    {
-      id: 21,
-      name: "Cartier Tank",
-      price: 200.0,
-      image: "/images/cartier1.jpg",
-      hoverImage: "/images/cartier1-hover.jpg",
-      link: "/cart",
-    },
-    {
-      id: 22,
-      name: "Cartier Tank",
-      price: 20.0,
-      image: "/images/cartier1.jpg",
-      hoverImage: "/images/cartier1-hover.jpg",
-      link: "/cart",
-    },
-    {
-      id: 23,
-      name: "Cartier Tank",
-      price: 200.0,
-      image: "/images/cartier1.jpg",
-      hoverImage: "/images/cartier1-hover.jpg",
-      link: "/cart",
-    },
-    {
-      id: 23,
-      name: "Cartier Tank",
-      price: 200.0,
-      image: "/images/cartier1.jpg",
-      hoverImage: "/images/cartier1-hover.jpg",
-      link: "/cart",
-    },
-    // ... rest of Cartier products
-  ],
-  Rolex: [
-    {
-      id: 30,
-      name: "Rolex Submariner",
-      price: 8000.0,
-      image: "/images/rolex1.jpg",
-      hoverImage: "/images/rolex1-hover.jpg",
-      link: "/cart",
-    },
-    // ... rest of Rolex products
-  ],
-};
+function BrandSection({
+  brandId,
+  title,
+  slug,
+  sortOption,
+}: {
+  brandId: string;
+  title: string;
+  slug: string;
+  sortOption: "default" | "price-low" | "price-high" | "name-asc" | "name-desc";
+}) {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [trigger, { data, isFetching, isUninitialized }] =
+    useLazyGetBrandDetailsAndProductsQuery();
+  const [visibleCount, setVisibleCount] = useState(4);
 
-const BrandSections = () => {
-  const [activeBrand, setActiveBrand] = useState("");
-  const [sortOption, setSortOption] = useState("default");
-  const [visibleCounts, setVisibleCounts] = useState<{
-    [brand: string]: number;
-  }>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredBrands, setFilteredBrands] = useState<string[]>(
-    Object.keys(allProductsByBrand)
-  );
-  const sectionRefs = useRef<{ [key: string]: HTMLElement | null }>({});
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting && isUninitialized) {
+            trigger(brandId);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -50% 0px", threshold: 0.1 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [brandId, isUninitialized, trigger]);
 
-  const handleQuickView = (id: number) => console.log("Quick view:", id);
-  const handleAddToCart = (id: number) => console.log("Add to cart:", id);
-
-  const scrollToBrand = (brand: string) => {
-    const section = document.getElementById(brand);
-    if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  const handleSeeMore = (brand: string, total: number) => {
-    setVisibleCounts((prev) => ({ ...prev, [brand]: total }));
-  };
-
-  const sortProducts = (products: typeof allProductsByBrand.Casio) => {
-    const sorted = [...products];
+  const products = useMemo(() => {
+    const arr = data?.products ?? [];
+    const sorted = [...arr];
     switch (sortOption) {
       case "price-low":
         return sorted.sort((a, b) => a.price - b.price);
@@ -222,66 +85,131 @@ const BrandSections = () => {
       default:
         return sorted;
     }
-  };
+  }, [data?.products, sortOption]);
 
+  const showAll = visibleCount >= products.length;
+
+  const handleQuickView = (id: string) => console.log("Quick view:", id);
+  const handleAddToCart = (id: string) => console.log("Add to cart:", id);
+
+  return (
+    <motion.section
+      ref={sectionRef as any}
+      id={slug}
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true, margin: "0px 0px -100px 0px" }}
+      transition={{ duration: 0.5 }}>
+      <h2 className="text-xl font-semibold text-gray-800 mb-6">{title}</h2>
+
+      {isFetching && products.length === 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <ProductCardSkeleton key={`s-${slug}-${i}`} />
+          ))}
+        </div>
+      ) : products.length === 0 ? (
+        <p className="text-gray-500">No products for this brand yet.</p>
+      ) : (
+        <>
+          <motion.div
+            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "0px 0px -100px 0px" }}
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+              },
+            }}>
+            {products.slice(0, visibleCount).map((p: any) => (
+              <ProductCard
+                key={p._id}
+                product={{
+                  id: p._id,
+                  name: p.name,
+                  price: p.price,
+                  image: p.image, 
+                  hoverImage: p.image,
+                  slug: p.slug, 
+                }}
+                onQuickView={() => handleQuickView(p._id)}
+                onAddToCart={() => handleAddToCart(p._id)}
+              />
+            ))}
+          </motion.div>
+
+          {!showAll && products.length > 4 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="flex justify-center mt-8">
+              <button
+                onClick={() => setVisibleCount(products.length)}
+                className="px-6 py-2 border bg-[#232c3b] border-gray-300 text-sm rounded-md text-white hover:opacity-90 transition-colors">
+                See More {title} Products ({products.length - 4})
+              </button>
+            </motion.div>
+          )}
+        </>
+      )}
+    </motion.section>
+  );
+}
+
+
+export default function BrandSections() {
+  const { data: brandsRaw, isLoading: loadingBrands } = useGetBrandsQuery();
+
+  const brands = useMemo(
+    () =>
+      (brandsRaw ?? []).map((b: any) => ({
+        ...b,
+        slug: slugifyName(b.name, b._id),
+      })),
+    [brandsRaw]
+  );
+
+  const [sortOption, setSortOption] = useState<
+    "default" | "price-low" | "price-high" | "name-asc" | "name-desc"
+  >("default");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeSlug, setActiveSlug] = useState("");
+
+  // filter by brand name
+  const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return brands;
+    return brands.filter((b) => b.name.toLowerCase().includes(q));
+  }, [brands, searchQuery]);
+
+  
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   useEffect(() => {
-    const observer = new IntersectionObserver(
+    const obs = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          const brand = entry.target.id;
-          if (entry.isIntersecting) setActiveBrand(brand);
-        });
+        entries.forEach((e) => e.isIntersecting && setActiveSlug(e.target.id));
       },
       { rootMargin: "-100px 0px -70% 0px", threshold: 0.1 }
     );
-
-    Object.keys(allProductsByBrand).forEach((brand) => {
-      const section = document.getElementById(brand);
-      if (section) {
-        sectionRefs.current[brand] = section;
-        observer.observe(section);
+    filtered.forEach((b) => {
+      const el = document.getElementById(b.slug);
+      if (el) {
+        sectionRefs.current[b.slug] = el as HTMLElement;
+        obs.observe(el);
       }
     });
+    return () => obs.disconnect();
+  }, [filtered]);
 
-    const timer = setTimeout(() => setIsLoading(false), 1500);
-
-    return () => {
-      Object.values(sectionRefs.current).forEach((section) => {
-        if (section) observer.unobserve(section);
-      });
-      clearTimeout(timer);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredBrands(Object.keys(allProductsByBrand));
-      return;
-    }
-
-    const filtered = Object.keys(allProductsByBrand).filter((brand) =>
-      brand.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    setFilteredBrands(filtered.length > 0 ? filtered : ["OUT OF STOCK"]);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    const viewedProducts = JSON.parse(
-      localStorage.getItem("recentlyViewed") || "[]"
-    );
-    const currentProduct = {
-      id: "cartier-rolex",
-      name: "Cartier Rolex",
-      price: 200,
-      image: { Image },
-    };
-    const updated = [
-      currentProduct,
-      ...viewedProducts.filter((p: any) => p.id !== currentProduct.id),
-    ].slice(0, 6);
-    localStorage.setItem("recentlyViewed", JSON.stringify(updated));
-  }, [Image]);
+  const scrollToBrand = (slug: string) => {
+    const section = document.getElementById(slug);
+    if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <main className="bg-[#f9fafb] min-h-screen flex flex-col items-center">
@@ -291,9 +219,8 @@ const BrandSections = () => {
         titleColor="#a77354"
       />
 
-      {/* Filter and Search Section */}
+      {/* Controls */}
       <div className="sticky top-0 z-20 bg-gray-50 border-b border-gray-200 w-[85%]">
-        {/* First Div - Filter and Search */}
         <div className="flex justify-between py-3 px-4">
           <div className="relative w-full max-w-md">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -311,7 +238,7 @@ const BrandSections = () => {
           <div className="flex justify-end">
             <select
               value={sortOption}
-              onChange={(e) => setSortOption(e.target.value)}
+              onChange={(e) => setSortOption(e.target.value as any)}
               className="border border-gray-300 rounded-sm px-4 py-2 text-sm text-gray-700">
               <option value="default">Sort by: Default</option>
               <option value="price-low">Price: Low to High</option>
@@ -322,114 +249,55 @@ const BrandSections = () => {
           </div>
         </div>
 
-        {/* Second Div - Brand Navigation */}
+        {/* Brand nav */}
         <div className="w-full py-3 px-4 border-t border-gray-200">
           <div className="flex gap-3 overflow-x-auto scrollbar-hide">
-            {filteredBrands.length > 0 ? (
-              filteredBrands[0] === "OUT OF STOCK" ? (
-                <div className="w-full text-center py-2 text-gray-500">
-                  Brand not available - Out of Stock
-                </div>
-              ) : (
-                filteredBrands.map((brand) => (
-                  <button
-                    key={brand}
-                    onClick={() => scrollToBrand(brand)}
-                    className={`px-4 py-2 rounded-sm text-sm font-medium whitespace-nowrap transition ${
-                      activeBrand === brand
-                        ? "bg-black text-white"
-                        : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
-                    }`}>
-                    {brand}
-                  </button>
-                ))
-              )
-            ) : null}
+            {loadingBrands ? (
+              <div className="w-full text-center py-2 text-gray-500">
+                Loading brands…
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="w-full text-center py-2 text-gray-500">
+                No matching brands
+              </div>
+            ) : (
+              filtered.map((b) => (
+                <button
+                  key={b._id}
+                  onClick={() => scrollToBrand(b.slug)}
+                  className={`px-4 py-2 rounded-sm text-sm font-medium whitespace-nowrap transition ${
+                    activeSlug === b.slug
+                      ? "bg-black text-white"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
+                  }`}>
+                  {b.name}
+                </button>
+              ))
+            )}
           </div>
         </div>
       </div>
 
-      {/* Brand Sections with Skeleton Loading */}
+      {/* Sections */}
       <div className="w-[85%] mx-auto py-10 space-y-16">
-        {Object.entries(allProductsByBrand)
-          .filter(([brand]) => filteredBrands.includes(brand))
-          .map(([brand, items]) => {
-            const sortedItems = sortProducts(items);
-            const visibleCount = visibleCounts[brand] ?? 4;
-            const showAll = visibleCount >= sortedItems.length;
-
-            return (
-              <motion.div
-                key={brand}
-                id={brand}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true, margin: "0px 0px -100px 0px" }}
-                transition={{ duration: 0.5 }}>
-                <h2 className="text-xl font-semibold text-gray-800 mb-6">
-                  {isLoading ? (
-                    <div className="h-6 bg-gray-100 rounded w-1/4 animate-pulse"></div>
-                  ) : (
-                    brand
-                  )}
-                </h2>
-
-                {isLoading ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    {[...Array(4)].map((_, i) => (
-                      <ProductCardSkeleton key={`skeleton-${brand}-${i}`} />
-                    ))}
-                  </div>
-                ) : (
-                  <>
-                    <motion.div
-                      className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4"
-                      initial="hidden"
-                      whileInView="visible"
-                      viewport={{ once: true, margin: "0px 0px -100px 0px" }}
-                      variants={{
-                        hidden: { opacity: 0 },
-                        visible: {
-                          opacity: 1,
-                          transition: {
-                            staggerChildren: 0.1,
-                            delayChildren: 0.2,
-                          },
-                        },
-                      }}>
-                      {sortedItems.slice(0, visibleCount).map((product) => (
-                        <ProductCard
-                          key={product.id}
-                          product={product}
-                          onQuickView={handleQuickView}
-                          onAddToCart={handleAddToCart}
-                        />
-                      ))}
-                    </motion.div>
-                    {!showAll && sortedItems.length > 4 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5 }}
-                        className="flex justify-center mt-8">
-                        <button
-                          onClick={() =>
-                            handleSeeMore(brand, sortedItems.length)
-                          }
-                          className="px-6 py-2 border bg-[#232c3b] border-gray-300 text-sm rounded-md hover:text-white transition-colors">
-                          See More {brand} Products ({sortedItems.length - 4})
-                        </button>
-                      </motion.div>
-                    )}
-                  </>
-                )}
-              </motion.div>
-            );
-          })}
+        {loadingBrands ? (
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 w-full">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <ProductCardSkeleton key={`loading-${i}`} />
+            ))}
+          </div>
+        ) : (
+          filtered.map((b) => (
+            <BrandSection
+              key={b._id}
+              brandId={b._id}
+              title={b.name}
+              slug={b.slug}
+              sortOption={sortOption}
+            />
+          ))
+        )}
       </div>
     </main>
   );
-};
-
-export default BrandSections;
+}

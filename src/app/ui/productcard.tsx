@@ -124,11 +124,11 @@ export default function ProductCard({ product }: ProductCardProps) {
       </h3>
       <div className="text-sm mb-2">
         <span className="text-gray-900 font-semibold">
-          ${product.price.toFixed(2)}
+          ₦{product.price.toFixed(2)}
         </span>
         {product.oldPrice && (
           <span className="ml-2 text-xs text-gray-400 line-through">
-            ${product.oldPrice.toFixed(2)}
+            ₦{product.oldPrice.toFixed(2)}
           </span>
         )}
       </div>

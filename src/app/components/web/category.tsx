@@ -47,7 +47,7 @@ const Category: FC = () => {
             transition={{ type: "spring", stiffness: 300, damping: 15 }}
             onClick={() => handleProductClick(item.id)}
             style={{
-              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2)), url('${item.image}')`,
+              backgroundImage: ` url('${item.image}')`,
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}>
