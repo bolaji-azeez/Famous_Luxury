@@ -1,6 +1,4 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { brandApi } from "@/features/brand/brandApi";
-
 import {
   persistReducer,
   persistStore,
@@ -13,33 +11,42 @@ import {
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 
-const persistConfig = {
-  key: "root",
+import userAuthReducer from "../../features/userAuth/userAuthSlice";
+import { userAuthApi } from "@/features/userAuth/userApi";
+import { brandApi } from "@/features/brand/brandApi";
+import { orderApi } from "@/features/order/orderApi";
+
+const userPersistConfig = {
+  key: "userAuth",
   version: 1,
   storage,
-  whitelist: ["auth"],
+  whitelist: ["userAuth", "token"],
 };
 
-const persistedReducer = persistReducer(persistConfig, userAuthReducer);
+const persistedUserAuthReducer = persistReducer(
+  userPersistConfig,
+  userAuthReducer
+);
 
 export const store = configureStore({
   reducer: {
-    userAuth: persistedReducer,
-   
-   
+    userAuth: persistedUserAuthReducer,
+    [brandApi.reducerPath]: brandApi.reducer,
+    [userAuthApi.reducerPath]: userAuthApi.reducer,
+    [orderApi.reducerPath]: orderApi.reducer,
   },
-
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
     })
-      
-      
-      
+      .concat(brandApi.middleware)
+      .concat(userAuthApi.middleware)
+      .concat(orderApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+
 export const persistor = persistStore(store);

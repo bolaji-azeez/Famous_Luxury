@@ -1,30 +1,127 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useEffect } from "react"; // Import useEffect
 import Link from "next/link";
 import Image from "next/image";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 
-export default function Login() {
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch } from "../../app/store/store";
+import {
+  clearSignupError,
+  clearLoginError,
+  selectSignupError,
+  selectLoginError,
+  selectSignupStatus,
+  selectLoginStatus,
+} from "@/features/userAuth/userAuthSlice";
+
+import {
+  useSignupUserMutation,
+  useLoginUserMutation,
+} from "@/features/userAuth/userApi";
+
+export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  const dispatch = useDispatch<AppDispatch>();
+  const loginError = useSelector(selectLoginError);
+  const signupError = useSelector(selectSignupError);
+  const loginStatus = useSelector(selectLoginStatus);
+  const signupStatus = useSelector(selectSignupStatus);
+
+  const [
+    signupUserMutation,
+    {
+      isLoading: isSigningUp,
+      isError: isSignupErrorRTK,
+      error: signupErrorRTK,
+      data: signupData,
+    },
+  ] = useSignupUserMutation();
+
+  const [
+    loginUserMutation,
+    {
+      isLoading: isLoggingIn,
+      isError: isLoginErrorRTK,
+      error: loginErrorRTK,
+      data: loginData,
+    },
+  ] = useLoginUserMutation();
+
+  const handleSignupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Clear previous signup errors from slice before new submission
+    dispatch(clearSignupError());
+
+    try {
+      await signupUserMutation({ fullName: name, email, password });
+    } catch (err) {
+      console.error("Signup submission error:", err);
+    }
+  };
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    dispatch(clearLoginError());
+
+    try {
+      await loginUserMutation({ email, password });
+    } catch (err) {
+      console.error("Login submission error:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (signupStatus === "succeeded" && signupData) {
+      console.log("Signup successful:", signupData);
+
+      setIsLogin(true);
+    }
+    if (signupError) {
+      console.error("Signup Error (from slice):", signupError);
+    }
+  }, [signupStatus, signupData, signupError]); // Dependencies for signup
+
+  useEffect(() => {
+    // Handle successful login
+    if (loginStatus === "succeeded" && loginData) {
+      console.log("Login successful:", loginData);
+      // Redirect to dashboard or home page
+      // window.location.href = "/dashboard"; // Example redirect
+    }
+    // Handle login errors
+    if (loginError) {
+      console.error("Login Error (from slice):", loginError);
+      // The UI element for loginError will display the message
+    }
+  }, [loginStatus, loginData, loginError]); // Dependencies for login
+
+  // --- Password Visibility Toggle ---
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
+
+  // --- Rendering ---
   return (
     <div
       className="min-h-screen bg-cover bg-center flex flex-col justify-center px-6 sm:px-4 lg:px-8 relative"
-      style={{ backgroundImage: "url('/logo.jpg')" }} // Replace with your background image
-    >
-      {/* Dark Overlay */}
+      style={{ backgroundImage: "url('/logo.jpg')" }}>
       <div className="absolute inset-0 bg-black/40"></div>
 
-      {/* Logo Link to Home */}
-      <div className="absolute top-6 left-6 z-20w-[100px] h-[20px]  rounded-full">
+      <div className="absolute top-6 left-6 z-20">
         <Link href="/">
           <div className="bg-white/30 backdrop-blur-md shadow-md rounded-full cursor-pointer hover:bg-white/50 transition-all duration-300">
             <Image
-              src="/Famous Store logo 2.jpg" // Replace with your logo path
+              src="/Famous Store logo 2.jpg"
               alt="Logo"
               width={100}
               height={10}
@@ -35,39 +132,43 @@ export default function Login() {
       </div>
 
       <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-md lg:max-w-lg">
-        {/* Glassmorphic Card */}
         <div className="backdrop-blur-lg bg-white/20 border border-white/30 shadow-lg py-6 px-4 rounded-lg sm:px-12 lg:px-10">
-          {/* Toggle Login/Signup */}
           <div className="flex border-b border-white/50 mb-6 text-center text-xs sm:text-sm text-white">
             <button
-              onClick={() => setIsLogin(true)}
+              onClick={() => {
+                setIsLogin(true);
+                dispatch(clearLoginError()); // Clear errors when toggling
+              }}
               className={`flex-1 py-3 sm:py-4 font-medium ${
                 isLogin ? "text-white border-b-2 border-white" : "text-gray-300"
-              }`}
-            >
+              }`}>
               I HAVE AN ACCOUNT
             </button>
             <button
-              onClick={() => setIsLogin(false)}
+              onClick={() => {
+                setIsLogin(false);
+                dispatch(clearSignupError());
+              }}
               className={`flex-1 py-3 sm:py-4 font-medium ${
                 !isLogin
                   ? "text-white border-b-2 border-white"
                   : "text-gray-300"
-              }`}
-            >
+              }`}>
               I DON'T HAVE AN ACCOUNT
             </button>
           </div>
 
           {/* Forms */}
           {isLogin ? (
-            <form className="space-y-5 rounded-sm">
+            <form onSubmit={handleLoginSubmit} className="space-y-5 rounded-sm">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-white">
+                <label
+                  htmlFor="login-email"
+                  className="block text-sm font-medium text-white">
                   Email *
                 </label>
                 <input
-                  id="email"
+                  id="login-email"
                   type="email"
                   required
                   value={email}
@@ -76,12 +177,14 @@ export default function Login() {
                 />
               </div>
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-white">
+                <label
+                  htmlFor="login-password"
+                  className="block text-sm font-medium text-white">
                   Password *
                 </label>
                 <div className="relative">
                   <input
-                    id="password"
+                    id="login-password"
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
@@ -90,34 +193,51 @@ export default function Login() {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
+                    onClick={togglePasswordVisibility}
                     className="absolute inset-y-0 right-3 flex items-center text-gray-200 hover:text-white"
-                    aria-label="Toggle password visibility"
-                  >
-                    {showPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
+                    aria-label="Toggle password visibility">
+                    {showPassword ? (
+                      <IoEyeOff size={20} />
+                    ) : (
+                      <IoEye size={20} />
+                    )}
                   </button>
                 </div>
               </div>
               <div className="flex items-center justify-end">
-                <Link href="/forgot-password" className="text-sm text-gray-200 hover:text-white">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-gray-200 hover:text-white">
                   Forget Your Password?
                 </Link>
               </div>
+
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black/70 hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
-              >
-                LOGIN
+                disabled={isLoggingIn}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white
+                ${
+                  isLoggingIn
+                    ? "bg-gray-500 cursor-not-allowed"
+                    : "bg-black/70 hover:bg-black"
+                }`}>
+                {isLoggingIn ? "LOGGING IN..." : "LOGIN"}
               </button>
+
+              {loginError && (
+                <p className="text-red-500 text-center text-xs">{loginError}</p>
+              )}
             </form>
           ) : (
-            <form className="space-y-5">
+            <form onSubmit={handleSignupSubmit} className="space-y-5">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-white">
+                <label
+                  htmlFor="signup-name"
+                  className="block text-sm font-medium text-white">
                   Fullname *
                 </label>
                 <input
-                  id="name"
+                  id="signup-name"
                   type="text"
                   required
                   value={name}
@@ -126,11 +246,13 @@ export default function Login() {
                 />
               </div>
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-white">
+                <label
+                  htmlFor="signup-email"
+                  className="block text-sm font-medium text-white">
                   Email *
                 </label>
                 <input
-                  id="email"
+                  id="signup-email"
                   type="email"
                   required
                   value={email}
@@ -139,12 +261,14 @@ export default function Login() {
                 />
               </div>
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-white">
+                <label
+                  htmlFor="signup-password"
+                  className="block text-sm font-medium text-white">
                   Password *
                 </label>
                 <div className="relative">
                   <input
-                    id="password"
+                    id="signup-password"
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
@@ -153,20 +277,50 @@ export default function Login() {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
+                    onClick={togglePasswordVisibility}
                     className="absolute inset-y-0 right-3 flex items-center text-gray-200 hover:text-white"
-                    aria-label="Toggle password visibility"
-                  >
-                    {showPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
+                    aria-label="Toggle password visibility">
+                    {showPassword ? (
+                      <IoEyeOff size={20} />
+                    ) : (
+                      <IoEye size={20} />
+                    )}
                   </button>
                 </div>
               </div>
+              <div>
+                <label
+                  htmlFor="signup-email"
+                  className="block text-sm font-medium text-white">
+                  Phone Number *
+                </label>
+                <input
+                  id="signup-phoneNumber"
+                  type="number"
+                  required
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-200 bg-white/10 text-white focus:outline-none focus:ring-white focus:border-white sm:text-sm"
+                />
+              </div>
+
               <button
-                type="button"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black/70 hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
-              >
-                SIGN UP
+                type="submit"
+                disabled={isSigningUp}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white
+                ${
+                  isSigningUp
+                    ? "bg-gray-500 cursor-not-allowed"
+                    : "bg-black/70 hover:bg-black"
+                }`}>
+                {isSigningUp ? "SIGNING UP..." : "SIGN UP"}
               </button>
+
+              {signupError && (
+                <p className="text-red-500 text-center text-xs">
+                  {signupError}
+                </p>
+              )}
             </form>
           )}
         </div>

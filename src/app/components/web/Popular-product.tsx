@@ -53,7 +53,7 @@ const products: Product[] = [
     id: 5,
     name: "Wireless Earbuds",
     price: 49.99,
-  image: "/image/shoc5.jpg",
+    image: "/image/shoc5.jpg",
     hoverImage: "/image/shoc11.jpg",
   },
   {
@@ -79,7 +79,7 @@ const products: Product[] = [
     price: 75.0,
     oldPrice: 90.0,
     discountPercentage: 17,
-   image: "/image/shoc8.jpg",
+    image: "/image/shoc8.jpg",
     hoverImage: "/image/shoc6.jpg",
   },
 ];
@@ -142,7 +142,7 @@ export default function PopularProducts() {
           <h2 className="text-2xl font-bold text-gray-900">Popular Products</h2>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-6 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {products.map((product) => {
             const isFlipped = flippedCards.includes(product.id);
 
@@ -153,8 +153,8 @@ export default function PopularProducts() {
                   <span className="bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded">
                     Hot
                   </span>
-                  <span className="bg-yellow-400 text-black text-xs font-semibold px-2 py-1 rounded">
-                    -20% 
+                  <span className="bg-[#1e2939] text-white text-xs font-semibold px-2 py-1 rounded">
+                    -20%
                   </span>
                 </div>
 
@@ -181,7 +181,7 @@ export default function PopularProducts() {
                     />
                   </div>
 
-                  {/* Back of Card (Hover Image + Quick View) */}
+                 
                   <div
                     className={`absolute inset-0 transition-opacity duration-300 ${
                       isMobile
@@ -211,7 +211,7 @@ export default function PopularProducts() {
                   </div>
                 </div>
 
-                {/* Product Info */}
+           
                 <div className="p-2">
                   <h3 className="text-sm font-medium text-gray-900 line-clamp-1">
                     {product.name}
@@ -232,7 +232,7 @@ export default function PopularProducts() {
                 <div className="px-2 pb-2">
                   <button
                     onClick={() => handleAddToCart(product)}
-                    className="w-full bg-black text-white py-2 rounded-md text-sm hover:bg-gray-800 transition-colors">
+                    className="w-full bg-gray-800  text-white py-2 rounded-md text-smtransition-colors">
                     Add to Cart
                   </button>
                 </div>
@@ -244,7 +244,7 @@ export default function PopularProducts() {
         <div className="mt-12 text-center">
           <Link
             href="/allproducts"
-            className="inline-block px-8 py-3 bg-black text-white rounded-md hover:bg-gray-800 transition-colors duration-200">
+            className="inline-block px-8 py-3 bg-gray-800 text-white rounded-md transition-colors duration-200">
             Discover More Products
           </Link>
         </div>

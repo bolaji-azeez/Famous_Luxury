@@ -5,7 +5,7 @@ import Category from "./components/web/category";
 import WhyChooseUs from "./components/web/WhyChooseUs";
 import NewArrival from "./components/web/NewArrival";
 import PopularProducts from "./components/web/Popular-product";
-import VideoDisplaySection from "./components/web/VideoDisplaySection";
+// import VideoDisplaySection from "./components/web/VideoDisplaySection";
 import NewsletterPopup from "./components/web/NewsletterPopup";
 
 export default function HomePage() {
@@ -13,9 +13,9 @@ export default function HomePage() {
     <div className="relative min-h-screen">
       {/* <Hero /> */}
       <Category />
-      <WhyChooseUs />
+
       <NewArrival />
-      <VideoDisplaySection />
+      <WhyChooseUs />
       <PopularProducts />
       <NewsletterPopup />
     </div>

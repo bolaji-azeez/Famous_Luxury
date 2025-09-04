@@ -1,36 +1,47 @@
-// features/brand/brandApi.ts
-import type { Brand } from "@/types";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import type { Brand, BrandWithProductsResponse } from "@/types";
 
 export const brandApi = createApi({
+  reducerPath: "brandApi",
   baseQuery: fetchBaseQuery({
-     baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || '/api',
-    prepareHeaders: (headers, { getState }) => {
-      const token = getState().adminAuth.token; //
-
-      console.log(token); // Adjust based on your auth state
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
+    baseUrl:
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      "https://e-backend-kwxx.onrender.com/api",
   }),
 
-  reducerPath: "brandApi",
-  tagTypes: ["Brand"],
+  tagTypes: ["Brand", "Product"],
   endpoints: (builder) => ({
     getBrands: builder.query<Brand[], void>({
       query: () => "/brands",
       providesTags: (result) =>
-        result ? result.map(({ _id }) => ({ type: "Brand", id: _id })) : ["Brand"],
+        result
+          ? [
+              { type: "Brand", id: "LIST" },
+              ...result.map((b) => ({ type: "Brand" as const, id: b._id })),
+            ]
+          : [{ type: "Brand", id: "LIST" }],
     }),
-
-   
-
-   
+    getBrandDetailsAndProducts: builder.query<
+      BrandWithProductsResponse,
+      string
+    >({
+      query: (slug) => `/brands/${slug}/products`,
+      providesTags: (result, _err, slug) =>
+        result
+          ? [
+              { type: "Brand", id: slug },
+              ...(result.products ?? []).map((p) => ({
+                type: "Product" as const,
+                id: p._id,
+              })),
+            ]
+          : [{ type: "Brand", id: slug }],
+    }),
   }),
 });
 
 export const {
   useGetBrandsQuery,
+  useGetBrandDetailsAndProductsQuery,
+  useLazyGetBrandDetailsAndProductsQuery,
 } = brandApi;

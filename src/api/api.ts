@@ -1,22 +1,17 @@
-
-
-// src/api.ts
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
- baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || '/api',
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "/api",
   headers: {
-    'Content-Type': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest',
+    "Content-Type": "application/json",
+    "X-Requested-With": "XMLHttpRequest",
   },
-  withCredentials: true, 
+  withCredentials: true,
 });
-
 
 api.interceptors.request.use(
   (config) => {
-    
-    const token = localStorage.getItem('userToken');
+    const token = localStorage.getItem("userToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -27,11 +22,9 @@ api.interceptors.request.use(
   }
 );
 
-
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-  
     if (error.response) {
       switch (error.response.status) {
         case 401:
@@ -44,10 +37,10 @@ api.interceptors.response.use(
           // Handle not found
           break;
         default:
-          console.error('API Error:', error.response.data);
+          console.error("API Error:", error.response.data);
       }
     } else {
-      console.error('Network Error:', error.message);
+      console.error("Network Error:", error.message);
     }
     return Promise.reject(error);
   }

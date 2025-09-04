@@ -20,7 +20,6 @@ const initialState: BrandState = {
 
 
 
-// Create async thunk for fetching brands
 export const fetchBrands = createAsyncThunk(
   "brands/fetchBrands",
   async (_, { rejectWithValue }) => {

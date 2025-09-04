@@ -1,8 +1,8 @@
 import { ReactNode } from "react";
 
-// Core data types for the e-commerce platform
+
 export interface Product {
-  id: string
+  _id: string
   name: string
   description: string
   price: number
@@ -161,9 +161,136 @@ export interface BrandState {
 
 
 
+export interface BrandWithProductsResponse {
+  brand: Brand;
+  products: Product[];
+}
+
+
+export interface SignupCredentials {
+  email: string;
+  password: string;
+  fullName?: string;
+  phoneNumber?: number;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface UserAPIResponse {
+  _id: string;
+  fullName: string;
+  email: string;
+  phoneNumber?: number;
+}
+
+export interface AuthSuccessResponse {
+  _id: string;
+  fullName: string;
+  email: string;
+  token: string;
+  phoneNumber?: number;
+}
+
+export interface APIError {
+  message: string;
+  statusCode?: number;
+}
 
 
 
+    export interface Order {
+  _id: string;
+  userId: {
+    _id: string;
+    fullName: string;
+    email: string;
+    items: Array<{
+      productId: string;
+      quantity: number;
+      price: number;
+      image: string;
+      name: string;
+      brand: string;
+    }>;
+  };
+  totalQuantity: number;
+  totalPrice: number;
+  orderId: number;
+  products: Array<{
+    productId: string | null;
+    price: number;
+    quantity: number;
+    _id: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+  status: string;
+  shippingAddress: {
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    street: string;
+    country: string;
+  };
+  payment: {
+    method: string;
+    status: string;
+  };
+  paymentMethod: string;
+  customer: {
+    fullName: string;
+    email: string;
+    phone: string;
+  };
+  shipping: {
+    method: string;
+    cost: number;
+    trackingNumber: string;
+    carrier: string;
+    estimatedDelivery: string;
+  };
+  totals: {
+    subtotal: number;
+    tax: number;
+    shipping: number;
+    total: number;
+  };
+  __v: number;
+  items: Array<{
+    productId: string;
+    quantity: number;
+    price: number;
+    image: string;
+    id: string;
+    name: string;
+    brand: string;
+    total: number;
+  }>;
+  timeline: Array<{
+    status: string;
+    date: string;
+  }>;
+  paymentStatus: string;
+  paymentId: string;
+  paymentDetails: {
+    transactionId: string;
+    method: string;
+    status: string;
+  };
 
+  carrier: string;
+  estimatedDelivery: string;
+}
 
-      
+export interface OrderTableItem {
+  _id: string;
+  customer: string;
+  product: string;
+  amount: string;
+  status: "pending" | "confirmed" | "delivered";
+  date: string;
+}  
