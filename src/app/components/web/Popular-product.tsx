@@ -1,108 +1,68 @@
 "use client";
+
 import Image from "next/image";
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "../context/cardContext";
+import { useGetProductsQuery } from "@/features/products/productApi";
 
-interface Product {
-  id: number;
+type AnyImage = { url?: string } | string;
+type AnyProduct = {
+  _id: string;
   name: string;
-  title?: string;
   price: number;
-  oldPrice?: number;
-  discountPercentage?: number;
-  image: string;
-  hoverImage?: string;
-  size?: string;
-}
-
-const products: Product[] = [
-  {
-    id: 1,
-    name: "Apple Watch Series 8",
-    price: 188.0,
-    image: "/image/shoc1.jpg",
-    hoverImage: "/image/shoc16.jpg",
-  },
-  {
-    id: 2,
-    name: "TECLAST Tablet Protective Cover Case",
-    price: 791.12,
-    oldPrice: 899.0,
-    discountPercentage: 12,
-    image: "/image/shoc2.jpg",
-    hoverImage: "/image/shoc15.jpg",
-  },
-  {
-    id: 3,
-    name: "ViewSonic Professional Monitor",
-    price: 281.06,
-    oldPrice: 299.0,
-    discountPercentage: 6,
-    image: "/image/shoc3.jpg",
-    hoverImage: "/image/shoc14.jpg",
-  },
-  {
-    id: 4,
-    name: "Buy Guild Planer - 900w",
-    price: 239.0,
-    image: "/image/shoc4.jpg",
-    hoverImage: "/image/shoc12.jpg",
-  },
-  {
-    id: 5,
-    name: "Wireless Earbuds",
-    price: 49.99,
-    image: "/image/shoc5.jpg",
-    hoverImage: "/image/shoc11.jpg",
-  },
-  {
-    id: 6,
-    name: "Portable Bluetooth Speaker",
-    price: 75.0,
-    oldPrice: 90.0,
-    image: "/image/shoc6.jpg",
-    hoverImage: "/image/shoc10.jpg",
-  },
-  {
-    id: 7,
-    name: "Portable Bluetooth Speaker",
-    price: 75.0,
-    oldPrice: 90.0,
-    discountPercentage: 17,
-    image: "/image/shoc7.jpg",
-    hoverImage: "/image/shoc9.jpg",
-  },
-  {
-    id: 8,
-    name: "Portable Bluetooth Speaker",
-    price: 75.0,
-    oldPrice: 90.0,
-    discountPercentage: 17,
-    image: "/image/shoc8.jpg",
-    hoverImage: "/image/shoc6.jpg",
-  },
-];
+  images?: AnyImage[] | null;
+  // optional fields you may have:
+  // oldPrice?: number;
+  // brand?: { _id: string; name: string };
+};
 
 export default function PopularProducts() {
+  const router = useRouter();
   const { addToCart } = useCart();
+  const {
+    data: productsRaw = [],
+    isLoading,
+    isFetching,
+  } = useGetProductsQuery();
+  const loading = isLoading || isFetching;
+
+  // Normalize backend products -> ensure we always have string[] of urls
+  const products = useMemo(() => {
+    const arr = (productsRaw as AnyProduct[]) ?? [];
+    return arr.map((p) => {
+      const urls =
+        (p.images ?? [])
+          .map((it) => (typeof it === "string" ? it : it?.url))
+          .filter((u): u is string => !!u) || [];
+      return {
+        _id: p._id,
+        name: p.name,
+        price: p.price,
+        images: urls, // first = front, second = hover
+      };
+    });
+  }, [productsRaw]);
+
   const [isMobile, setIsMobile] = useState(false);
-  const [flippedCards, setFlippedCards] = useState<number[]>([]);
-  const [notification, setNotification] = useState({
+  const [flippedCards, setFlippedCards] = useState<string[]>([]);
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    productId: string | null;
+  }>({
     show: false,
     productId: null,
   });
 
   useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-    checkIfMobile();
-    window.addEventListener("resize", checkIfMobile);
-    return () => window.removeEventListener("resize", checkIfMobile);
+    const onResize = () => setIsMobile(window.innerWidth <= 768);
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const handleCardFlip = (productId: number) => {
+  const handleCardFlip = (productId: string) => {
     if (!isMobile) return;
     setFlippedCards((prev) =>
       prev.includes(productId)
@@ -111,20 +71,26 @@ export default function PopularProducts() {
     );
   };
 
-  const handleQuickView = (productId: number) => {
-    console.log("Quick view for product:", productId);
+  const handleQuickView = (productId: string) => {
+    // Go to detail page
+    router.push(`/detail/${productId}`);
   };
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = (product: {
+    _id: string;
+    name: string;
+    price: number;
+    image?: string;
+  }) => {
     addToCart({
-      id: product.id,
+      id: product._id, // ✅ real Mongo id
       name: product.name,
       price: product.price,
-      image: product.image,
+      image: product.image || "/placeholder.png",
       quantity: 1,
     });
 
-    setNotification({ show: true, productId: product.id });
+    setNotification({ show: true, productId: product._id });
     setTimeout(() => setNotification({ show: false, productId: null }), 2000);
   };
 
@@ -142,109 +108,133 @@ export default function PopularProducts() {
           <h2 className="text-2xl font-bold text-gray-900">Popular Products</h2>
         </div>
 
-        <div className="grid grid-cols-6 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {products.map((product) => {
-            const isFlipped = flippedCards.includes(product.id);
-
-            return (
-              <div key={product.id} className="group relative">
-                {/* Hot New & Discount Labels */}
-                <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
-                  <span className="bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded">
-                    Hot
-                  </span>
-                  <span className="bg-[#1e2939] text-white text-xs font-semibold px-2 py-1 rounded">
-                    -20%
-                  </span>
-                </div>
-
-                {/* Mobile Flip Card Container */}
-                <div
-                  className={`relative aspect-square mb-3 overflow-hidden rounded transition-all duration-500 ${
-                    isMobile ? "cursor-pointer" : ""
-                  }`}
-                  onClick={() => isMobile && handleCardFlip(product.id)}>
-                  {/* Front of Card (Main Image) */}
-                  <div
-                    className={`absolute inset-0 transition-opacity duration-300 ${
-                      isMobile
-                        ? isFlipped
-                          ? "opacity-0"
-                          : "opacity-100"
-                        : "group-hover:opacity-0"
-                    }`}>
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-
-                 
-                  <div
-                    className={`absolute inset-0 transition-opacity duration-300 ${
-                      isMobile
-                        ? isFlipped
-                          ? "opacity-100"
-                          : "opacity-0"
-                        : "opacity-0 group-hover:opacity-100"
-                    }`}>
-                    <Image
-                      src={product.hoverImage || product.image}
-                      alt={`${product.name} hover`}
-                      fill
-                      className="object-cover"
-                    />
-                    <Link href="/detail">
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleQuickView(product.id);
-                          }}
-                          className="bg-white text-black px-4 py-2 rounded-md text-sm font-medium">
-                          Quick View
-                        </button>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-
-           
-                <div className="p-2">
-                  <h3 className="text-sm font-medium text-gray-900 line-clamp-1">
-                    {product.name}
-                  </h3>
-                  <div className="flex items-center mt-1">
-                    <span className="text-sm font-semibold text-gray-900">
-                      ${product.price.toFixed(2)}
-                    </span>
-                    {product.oldPrice && (
-                      <span className="ml-2 text-xs text-gray-400 line-through">
-                        ${product.oldPrice.toFixed(2)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Add to Cart Button */}
-                <div className="px-2 pb-2">
-                  <button
-                    onClick={() => handleAddToCart(product)}
-                    className="w-full bg-gray-800  text-white py-2 rounded-md text-smtransition-colors">
-                    Add to Cart
-                  </button>
+        {/* Loading skeleton */}
+        {loading ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={`skel-${i}`}
+                className="relative border rounded-lg overflow-hidden">
+                <div className="aspect-square bg-gray-100 animate-pulse" />
+                <div className="p-3 space-y-2">
+                  <div className="h-4 bg-gray-100 rounded w-3/4 animate-pulse" />
+                  <div className="h-4 bg-gray-100 rounded w-1/3 animate-pulse" />
+                  <div className="h-9 bg-gray-100 rounded w-full animate-pulse" />
                 </div>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        ) : products.length === 0 ? (
+          <p className="text-gray-500">No popular products available.</p>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {products.slice(7).map((p) => {
+              const front = p.images[0] ?? "/placeholder.png";
+              const hover = p.images[1] ?? front;
+              const isFlipped = flippedCards.includes(p._id);
+
+              return (
+                <div key={p._id} className="group relative">
+                  {/* Labels */}
+                  <div className="absolute top-2 left-2 z-10 flex flex-col gap-1 pointer-events-none">
+                    <span className="bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded">
+                      Hot
+                    </span>
+                  </div>
+
+                  {/* Mobile flip / Desktop hover */}
+                  <div
+                    className={`relative aspect-square mb-3 overflow-hidden rounded transition-all duration-500 ${
+                      isMobile ? "cursor-pointer" : ""
+                    }`}
+                    onClick={() => isMobile && handleCardFlip(p._id)}>
+                    {/* Front image */}
+                    <div
+                      className={`absolute inset-0 transition-opacity duration-300 ${
+                        isMobile
+                          ? isFlipped
+                            ? "opacity-0"
+                            : "opacity-100"
+                          : "group-hover:opacity-0"
+                      }`}>
+                      <Image
+                        src={front}
+                        alt={p.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+
+                    {/* Hover / Back image */}
+                    <div
+                      className={`absolute inset-0 transition-opacity duration-300 ${
+                        isMobile
+                          ? isFlipped
+                            ? "opacity-100"
+                            : "opacity-0"
+                          : "opacity-0 group-hover:opacity-100"
+                      }`}>
+                      <Image
+                        src={hover}
+                        alt={`${p.name} hover`}
+                        fill
+                        className="object-cover"
+                      />
+                      <Link
+                        href={`/detail/${p._id}`}
+                        className="absolute inset-0">
+                        <div className="w-full h-full flex items-center justify-center bg-black/20">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleQuickView(p._id);
+                            }}
+                            className="bg-white text-black px-4 py-2 rounded-md text-sm font-medium">
+                            Quick View
+                          </button>
+                        </div>
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Info */}
+                  <div className="p-2">
+                    <h3 className="text-sm font-medium text-gray-900 line-clamp-1">
+                      {p.name}
+                    </h3>
+                    <div className="flex items-center mt-1">
+                      <span className="text-sm font-semibold text-gray-900">
+                        ₦{p.price.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Add to Cart */}
+                  <div className="px-2 pb-2">
+                    <button
+                      onClick={() =>
+                        handleAddToCart({
+                          _id: p._id,
+                          name: p.name,
+                          price: p.price,
+                          image: front,
+                        })
+                      }
+                      className="w-full bg-gray-800 text-white py-2 rounded-md text-sm transition-colors hover:bg-gray-900">
+                      Add to Cart
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         <div className="mt-12 text-center">
           <Link
             href="/allproducts"
-            className="inline-block px-8 py-3 bg-gray-800 text-white rounded-md transition-colors duration-200">
+            className="inline-block px-8 py-3 bg-gray-800 text-white rounded-md transition-colors duration-200 hover:bg-gray-900">
             Discover More Products
           </Link>
         </div>

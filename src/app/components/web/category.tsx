@@ -18,7 +18,7 @@ const productItems: ProductGridItem[] = [
     id: 1,
     title: "Luxury Watches",
     subtitle: "Sale up to 30% Off",
-    image: "/image/category.jpg",
+    image: "/image/podeegar.jpg",
     buttonText: "Shop Now",
   },
   {
@@ -91,7 +91,7 @@ const Category: FC = () => {
             onClick={() => handleProductClick(item.id)}
             style={{
               backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('${item.image}')`,
-              backgroundSize: "cover",
+              backgroundSize: "contain",
               backgroundPosition: "center",
             }}>
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />

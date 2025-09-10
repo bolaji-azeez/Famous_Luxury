@@ -1,5 +1,8 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { Brand, BrandWithProductsResponse } from "@/types";
+import type { Brand } from "@/types";
+
+// Define a type that includes the _id property
+type BrandWithId = Brand & { _id: string };
 
 export const brandApi = createApi({
   reducerPath: "brandApi",
@@ -8,7 +11,6 @@ export const brandApi = createApi({
       process.env.NEXT_PUBLIC_API_BASE_URL ||
       "https://e-backend-kwxx.onrender.com/api",
   }),
-
   tagTypes: ["Brand", "Product"],
   endpoints: (builder) => ({
     getBrands: builder.query<Brand[], void>({
@@ -16,32 +18,15 @@ export const brandApi = createApi({
       providesTags: (result) =>
         result
           ? [
-              { type: "Brand", id: "LIST" },
-              ...result.map((b) => ({ type: "Brand" as const, id: b._id })),
-            ]
-          : [{ type: "Brand", id: "LIST" }],
-    }),
-    getBrandDetailsAndProducts: builder.query<
-      BrandWithProductsResponse,
-      string
-    >({
-      query: (slug) => `/brands/${slug}/products`,
-      providesTags: (result, _err, slug) =>
-        result
-          ? [
-              { type: "Brand", id: slug },
-              ...(result.products ?? []).map((p) => ({
-                type: "Product" as const,
-                id: p._id,
+              { type: "Brand" as const, id: "LIST" },
+              ...result.map((b) => ({
+                type: "Brand" as const,
+                id: (b as BrandWithId)._id,
               })),
             ]
-          : [{ type: "Brand", id: slug }],
+          : [{ type: "Brand" as const, id: "LIST" }],
     }),
   }),
 });
 
-export const {
-  useGetBrandsQuery,
-  useGetBrandDetailsAndProductsQuery,
-  useLazyGetBrandDetailsAndProductsQuery,
-} = brandApi;
+export const { useGetBrandsQuery } = brandApi;

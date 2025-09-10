@@ -3,56 +3,51 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useCart } from "../components/context/cardContext"; // (check this isn't a typo)
+import { useCart } from "../components/context/cardContext";
 import Link from "next/link";
 import { PiArrowLeft } from "react-icons/pi";
-import { CartItem } from "@/types";
 import Image from "next/image";
 import clsx from "clsx";
 import { useCreateOrderMutation } from "@/features/order/orderApi";
-
-type ErrorMap = Record<string, string>;
-
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import type { SerializedError } from "@reduxjs/toolkit";
+import { CreateOrderInput } from "@/types";
 
-type CreateOrderInput = {
-  customer: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    address: string;
-    city: string;
-  };
-  items: Array<{
-    productId: string;
-    name: string;
-    quantity: number;
-    unitPrice: number;
-  }>;
-  totals: {
-    subtotal: number;
-    shipping: number;
-    tax: number;
-    total: number;
-    currency: "NGN";
-  };
-  paymentMethod: "cash_on_delivery";
+
+type ApiErrorBody = {
+  message?: string;
+  errors?: Record<string, string >;
 };
 
+function isFetchBaseQueryError(err: unknown): err is FetchBaseQueryError {
+  return typeof err === "object" && err !== null && "status" in err;
+}
+
+function isSerializedError(err: unknown): err is SerializedError {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    ("message" in err || "name" in err || "stack" in err)
+  );
+}
+type ErrorMap = Record<string, string>;
+
+
+
 export default function CheckoutPage() {
-  const { cart = [], cartItemCount } = useCart() || {};
+  // ✅ use items from the cart context
+  const { items, clearCart } = useCart();
+  const router = useRouter();
 
-  const totalItems =
-    cart?.reduce((n: number, item: CartItem) => n + (item?.quantity || 0), 0) ??
-    cartItemCount ??
-    0;
-
-  const subtotal = cart.reduce(
-    (sum: number, item: CartItem) =>
-      sum + (item?.price || 0) * (item?.quantity || 0),
+  // Totals derived from items
+  const totalItems = items.reduce((n, it) => n + (it.quantity || 0), 0);
+  const subtotal = items.reduce(
+    (sum, it) => sum + (it.price || 0) * (it.quantity || 0),
     0
   );
-  const shipping = cart.length > 0 ? 5.0 : 0;
+  const shipping = items.length > 0 ? 5.0 : 0; // adjust to your business rules
   const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax;
 
@@ -61,7 +56,6 @@ export default function CheckoutPage() {
   const [showErrorBanner, setShowErrorBanner] = useState(false);
   const bannerRef = useRef<HTMLDivElement>(null);
   const [createOrder, { isLoading: creating }] = useCreateOrderMutation();
-  const router = useRouter();
 
   function validate(form: HTMLFormElement): ErrorMap {
     const fd = new FormData(form);
@@ -91,9 +85,8 @@ export default function CheckoutPage() {
     e.preventDefault();
     const form = e.currentTarget;
 
-    // Validate required fields
     const nextErrors = validate(form);
-    if (cart.length === 0) {
+    if (items.length === 0) {
       nextErrors["_cart"] = "Your cart is empty.";
     }
 
@@ -114,7 +107,6 @@ export default function CheckoutPage() {
     setErrors({});
     setIsSubmitting(true);
 
-    // Build payload
     const fd = new FormData(form);
     const payload: CreateOrderInput = {
       customer: {
@@ -124,45 +116,72 @@ export default function CheckoutPage() {
         address: String(fd.get("address") ?? ""),
         city: String(fd.get("city") ?? ""),
       },
-      items: cart.map((item) => ({
-        productId: String(item.id),
-        name: item.name,
+      products: items.map((item) => ({
+        productId: String(item.id), // <-- must be product._id from DB
+        price: Number(item.price || 0), // <-- price (not unitPrice)
         quantity: Number(item.quantity || 0),
-        unitPrice: Number(item.price || 0),
+        name: item.name, // snapshot so modal can show even if populate fails
       })),
-      totals: {
+      totalPrice: Number(total.toFixed(2)),
+      totalQuantity: totalItems,
+      currency: "NGN",
+      amounts: {
         subtotal: Number(subtotal.toFixed(2)),
         shipping: Number(shipping.toFixed(2)),
         tax: Number(tax.toFixed(2)),
-        total: Number(total.toFixed(2)),
-        currency: "NGN",
       },
       paymentMethod: "cash_on_delivery",
     };
 
     try {
-      // Call RTKQ mutation
-      const created = await createOrder(payload as any).unwrap();
+      await createOrder(payload).unwrap();
 
-      // Optional: redirect to a success page if you have one
-      const createdId = (created as any)?.id ?? (created as any)?._id ?? "";
-      alert("Order placed successfully!");
-      if (createdId) {
-        router.push(`/order/success?orderId=${createdId}`);
-      } else {
-        router.push(`/order/success`);
+      toast.success("Order placed successfully 🎉", {
+        description: "Thank you! We’re preparing your order.",
+      });
+
+      try {
+        clearCart();
+      } catch {
+        /* no-op */
       }
 
-      // TODO: clear cart here if your context exposes an action (e.g., clearCart())
-    } catch (err: any) {
-      // RTKQ error format: { data?: { message?: string | Record }, status?: number }
+      setTimeout(() => {
+        router.push("/");
+      }, 2000);
+    } catch (err: unknown) {
       console.error("Create order failed:", err);
-      const apiMessage =
-        err?.data?.message ||
-        (typeof err?.data === "string" ? err.data : "") ||
-        "Something went wrong placing your order.";
+
+      let apiMessage = "Something went wrong placing your order.";
+      let fieldErrors: ApiErrorBody["errors"];
+
+      if (isFetchBaseQueryError(err)) {
+        const data = (err as FetchBaseQueryError).data as unknown;
+
+        if (typeof data === "string") {
+          apiMessage = data || apiMessage;
+        } else if (data && typeof data === "object") {
+          const body = data as ApiErrorBody;
+          apiMessage = body.message ?? apiMessage;
+          fieldErrors = body.errors;
+        }
+      } else if (
+        isSerializedError(err) &&
+        typeof err.message === "string" &&
+        err.message
+      ) {
+        apiMessage = err.message;
+      }
+
+      // Build your field -> message map without any
+      const next: ErrorMap = {};
+      if (fieldErrors) {
+        for (const [k, v] of Object.entries(fieldErrors)) {
+          next[k] = typeof v === "string" ? v : v.message ?? "Invalid value.";
+        }
+      }
       setShowErrorBanner(true);
-      setErrors({ _api: apiMessage });
+      setErrors(Object.keys(next).length ? next : { _api: apiMessage });
       requestAnimationFrame(() => {
         bannerRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -173,6 +192,7 @@ export default function CheckoutPage() {
     } finally {
       setIsSubmitting(false);
     }
+    toast.error(apiMessage);
   }
 
   return (
@@ -186,7 +206,6 @@ export default function CheckoutPage() {
             Back to Cart
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 mt-4">Checkout</h1>
-          {/* Use computed totalItems here */}
           <p className="text-gray-600">
             {totalItems} {totalItems === 1 ? "item" : "items"} in your order
           </p>
@@ -201,14 +220,14 @@ export default function CheckoutPage() {
               </h2>
 
               <div className="space-y-4">
-                {cart.map((item) => (
+                {items.map((item) => (
                   <div
                     key={item.id}
                     className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div className="relative w-16 h-16 bg-gray-100 rounded-md overflow-hidden">
                         <Image
-                          src={item.image}
+                          src={item.image || "/placeholder.png"}
                           alt={item.name}
                           fill
                           sizes="64px"
@@ -225,11 +244,11 @@ export default function CheckoutPage() {
                       </div>
                     </div>
                     <p className="font-medium text-gray-900">
-                      ${((item.price || 0) * (item.quantity || 0)).toFixed(2)}
+                      ₦{((item.price || 0) * (item.quantity || 0)).toFixed(2)}
                     </p>
                   </div>
                 ))}
-                {cart.length === 0 && (
+                {items.length === 0 && (
                   <p className="text-sm text-gray-500">Your cart is empty.</p>
                 )}
               </div>
@@ -259,11 +278,10 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Submit button is associated to the form via form attribute */}
               <Button
                 form="checkout-form"
                 type="submit"
-                disabled={isSubmitting || creating || cart.length === 0}
+                disabled={isSubmitting || creating || items.length === 0}
                 className="w-full mt-8 py-3 bg-[#a77354] hover:bg-[#8a5c40] text-white rounded-lg text-lg font-semibold shadow-lg transition-colors duration-300 disabled:opacity-60">
                 {isSubmitting || creating
                   ? "Placing order..."
@@ -298,7 +316,6 @@ export default function CheckoutPage() {
               Contact Information
             </h2>
 
-            {/* Error banner */}
             {showErrorBanner && (
               <div
                 ref={bannerRef}
@@ -317,6 +334,7 @@ export default function CheckoutPage() {
                     <li>Delivery Address: {errors.address}</li>
                   )}
                   {errors.city && <li>City: {errors.city}</li>}
+                  {errors._api && <li>{errors._api}</li>}
                 </ul>
               </div>
             )}
@@ -326,6 +344,7 @@ export default function CheckoutPage() {
               className="space-y-6"
               onSubmit={handleSubmit}
               noValidate>
+              {/* form fields unchanged */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label

@@ -1,8 +1,15 @@
-// features/brand/brandSlice.ts
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api/api";
 import type { Brand } from "@/types";
 
+// A helper type for Axios-like error structures
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+};
 
 interface BrandState {
   items: Brand[];
@@ -18,23 +25,20 @@ const initialState: BrandState = {
   error: null,
 };
 
-
-
 export const fetchBrands = createAsyncThunk(
   "brands/fetchBrands",
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get("/brands");
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError;
       return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch brands"
+        apiError.response?.data?.message || "Failed to fetch brands"
       );
     }
   }
 );
-
-
 
 const brandSlice = createSlice({
   name: "brands",
@@ -42,8 +46,6 @@ const brandSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-     
-      
       // Fetch Brands
       .addCase(fetchBrands.pending, (state) => {
         state.status = "loading";
@@ -55,10 +57,8 @@ const brandSlice = createSlice({
       .addCase(fetchBrands.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload as string;
-      })
+      });
     // Delete Brand
-      
-    
   },
 });
 
