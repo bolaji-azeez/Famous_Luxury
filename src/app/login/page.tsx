@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react"; // Import useEffect
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { IoEye, IoEyeOff } from "react-icons/io5";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../../app/store/store";
@@ -21,6 +23,13 @@ import {
   useLoginUserMutation,
 } from "@/features/userAuth/userApi";
 
+// Define a type for API errors to avoid using 'any'
+type ApiError = {
+  data?: {
+    message?: string;
+  };
+};
+
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
 
@@ -36,87 +45,77 @@ export default function AuthPage() {
   const loginStatus = useSelector(selectLoginStatus);
   const signupStatus = useSelector(selectSignupStatus);
 
-  const [
-    signupUserMutation,
-    {
-      isLoading: isSigningUp,
-      isError: isSignupErrorRTK,
-      error: signupErrorRTK,
-      data: signupData,
-    },
-  ] = useSignupUserMutation();
+  const [signupUserMutation, { isLoading: isSigningUp, data: signupData }] =
+    useSignupUserMutation();
 
-  const [
-    loginUserMutation,
-    {
-      isLoading: isLoggingIn,
-      isError: isLoginErrorRTK,
-      error: loginErrorRTK,
-      data: loginData,
-    },
-  ] = useLoginUserMutation();
+  const [loginUserMutation, { isLoading: isLoggingIn, data: loginData }] =
+    useLoginUserMutation();
 
   const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Clear previous signup errors from slice before new submission
     dispatch(clearSignupError());
 
+    const phone = phoneNumber.trim();
+    if (!phone) {
+      toast.error("Phone number is required.");
+      return;
+    }
+
     try {
-      await signupUserMutation({ fullName: name, email, password });
+      await signupUserMutation({
+        fullName: name,
+        email,
+        password,
+        phoneNumber: parseInt(phone, 10), // Convert string to number
+      }).unwrap(); // Use unwrap to handle errors in the catch block
     } catch (err) {
-      console.error("Signup submission error:", err);
+      const apiError = err as ApiError;
+      toast.error(apiError.data?.message || "Error registering user");
     }
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     dispatch(clearLoginError());
 
     try {
-      await loginUserMutation({ email, password });
+      await loginUserMutation({ email, password }).unwrap(); // Use unwrap
     } catch (err) {
-      console.error("Login submission error:", err);
+      const apiError = err as ApiError;
+      toast.error(apiError.data?.message || "Error logging in");
     }
   };
 
   useEffect(() => {
     if (signupStatus === "succeeded" && signupData) {
-      console.log("Signup successful:", signupData);
-
+      toast.success("Signup successful!");
       setIsLogin(true);
     }
     if (signupError) {
-      console.error("Signup Error (from slice):", signupError);
+      toast.error(signupError);
     }
-  }, [signupStatus, signupData, signupError]); // Dependencies for signup
+  }, [signupStatus, signupData, signupError]);
 
   useEffect(() => {
-    // Handle successful login
     if (loginStatus === "succeeded" && loginData) {
-      console.log("Login successful:", loginData);
-      // Redirect to dashboard or home page
-      // window.location.href = "/dashboard"; // Example redirect
+      toast.success("Login successful!");
+      // Consider redirecting the user after successful login
+      // e.g., window.location.href = "/dashboard";
     }
-    // Handle login errors
     if (loginError) {
-      console.error("Login Error (from slice):", loginError);
-      // The UI element for loginError will display the message
+      toast.error(loginError);
     }
-  }, [loginStatus, loginData, loginError]); // Dependencies for login
+  }, [loginStatus, loginData, loginError]);
 
-  // --- Password Visibility Toggle ---
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
   };
 
-  // --- Rendering ---
   return (
     <div
       className="min-h-screen bg-cover bg-center flex flex-col justify-center px-6 sm:px-4 lg:px-8 relative"
       style={{ backgroundImage: "url('/logo.jpg')" }}>
       <div className="absolute inset-0 bg-black/40"></div>
-
       <div className="absolute top-6 left-6 z-20">
         <Link href="/">
           <div className="bg-white/30 backdrop-blur-md shadow-md rounded-full cursor-pointer hover:bg-white/50 transition-all duration-300">
@@ -137,7 +136,7 @@ export default function AuthPage() {
             <button
               onClick={() => {
                 setIsLogin(true);
-                dispatch(clearLoginError()); // Clear errors when toggling
+                dispatch(clearLoginError());
               }}
               className={`flex-1 py-3 sm:py-4 font-medium ${
                 isLogin ? "text-white border-b-2 border-white" : "text-gray-300"
@@ -154,11 +153,10 @@ export default function AuthPage() {
                   ? "text-white border-b-2 border-white"
                   : "text-gray-300"
               }`}>
-              I DON'T HAVE AN ACCOUNT
+              I DO NOT HAVE AN ACCOUNT
             </button>
           </div>
 
-          {/* Forms */}
           {isLogin ? (
             <form onSubmit={handleLoginSubmit} className="space-y-5 rounded-sm">
               <div>
@@ -170,6 +168,7 @@ export default function AuthPage() {
                 <input
                   id="login-email"
                   type="email"
+                  autoComplete="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -186,6 +185,7 @@ export default function AuthPage() {
                   <input
                     id="login-password"
                     type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -215,18 +215,13 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={isLoggingIn}
-                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white
-                ${
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white ${
                   isLoggingIn
                     ? "bg-gray-500 cursor-not-allowed"
                     : "bg-black/70 hover:bg-black"
                 }`}>
                 {isLoggingIn ? "LOGGING IN..." : "LOGIN"}
               </button>
-
-              {loginError && (
-                <p className="text-red-500 text-center text-xs">{loginError}</p>
-              )}
             </form>
           ) : (
             <form onSubmit={handleSignupSubmit} className="space-y-5">
@@ -239,6 +234,7 @@ export default function AuthPage() {
                 <input
                   id="signup-name"
                   type="text"
+                  autoComplete="name"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -254,6 +250,7 @@ export default function AuthPage() {
                 <input
                   id="signup-email"
                   type="email"
+                  autoComplete="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -270,6 +267,7 @@ export default function AuthPage() {
                   <input
                     id="signup-password"
                     type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -290,13 +288,14 @@ export default function AuthPage() {
               </div>
               <div>
                 <label
-                  htmlFor="signup-email"
+                  htmlFor="signup-phoneNumber"
                   className="block text-sm font-medium text-white">
                   Phone Number *
                 </label>
                 <input
                   id="signup-phoneNumber"
-                  type="number"
+                  type="tel"
+                  autoComplete="tel"
                   required
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
@@ -307,20 +306,13 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={isSigningUp}
-                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white
-                ${
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white ${
                   isSigningUp
                     ? "bg-gray-500 cursor-not-allowed"
                     : "bg-black/70 hover:bg-black"
                 }`}>
                 {isSigningUp ? "SIGNING UP..." : "SIGN UP"}
               </button>
-
-              {signupError && (
-                <p className="text-red-500 text-center text-xs">
-                  {signupError}
-                </p>
-              )}
             </form>
           )}
         </div>

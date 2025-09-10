@@ -9,12 +9,13 @@ import {
   PURGE,
   REGISTER,
 } from "redux-persist";
-import storage from "redux-persist/lib/storage";
+import { storage } from "@/lib/persistStorage";
 
 import userAuthReducer from "../../features/userAuth/userAuthSlice";
 import { userAuthApi } from "@/features/userAuth/userApi";
 import { brandApi } from "@/features/brand/brandApi";
 import { orderApi } from "@/features/order/orderApi";
+import { productApi } from "@/features/products/productApi";
 
 const userPersistConfig = {
   key: "userAuth",
@@ -34,6 +35,7 @@ export const store = configureStore({
     [brandApi.reducerPath]: brandApi.reducer,
     [userAuthApi.reducerPath]: userAuthApi.reducer,
     [orderApi.reducerPath]: orderApi.reducer,
+    [productApi.reducerPath]: productApi.reducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -43,7 +45,8 @@ export const store = configureStore({
     })
       .concat(brandApi.middleware)
       .concat(userAuthApi.middleware)
-      .concat(orderApi.middleware),
+      .concat(orderApi.middleware)
+      .concat(productApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

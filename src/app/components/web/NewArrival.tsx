@@ -1,117 +1,90 @@
 "use client";
-import { type FC, useState, useEffect, useRef } from "react";
+import { type FC, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import ProductCard from "@/app/ui/productcard";
-
+import { useGetProductsQuery } from "@/features/products/productApi";
 
 interface NewArrivalProps {
   title?: string;
 }
 
-const sampleProducts: ProductCard[] = [
-  {
-    id: 1,
-    title: "Sunblast Solar Humid",
-    price: 19.12,
-    oldPrice: 29.99,
-    image: "/image/cas1.jpg",
-    hoverImage:
-      "/images/G-shock.png",
-      size: "medium"
-  },
-  {
-    id: 2,
-    title: "Cam Scope Natiopia",
-    price: 28.72,
-    oldPrice: 44.0,
-    image: "/image/cas2.jpg",
-    hoverImage: "/image/cas5.jpg",
-  },
-  {
-    id: 3,
-    title: "Suspended Alexa Hula",
-    price: 29.0,
-    image: "/images/4.jpg",
-    hoverImage: "/image/cas11.jpg",
-  },
-  {
-    id: 4,
-    title: "Juno Nexus Commodo Tool",
-    price: 29.0,
-    image: "/image/cas5.jpg",
-    hoverImage: "/image/cas11.jpg",
-  },
-  {
-    id: 5,
-    title: "Digital Camera Pro",
-    price: 45.99,
-    oldPrice: 59.99,
-    image: "/image/cas6.jpg",
-    hoverImage: "/image/cas4.jpg",
-  },
-  {
-    id: 6,
-    title: "Wireless Headphones",
-    price: 89.99,
-    image: "/image/cas7.jpg",
-    hoverImage: "/image/cas3.jpg",
-  },
-  {
-    id: 7,
-    title: "Smart Watch Elite",
-    price: 199.99,
-    oldPrice: 249.99,
-    image: "/image/cas8.jpg",
-    hoverImage: "/image/cas2.jpg",
-  },
-  {
-    id: 8,
-    title: "Bluetooth Speaker",
-    price: 39.99,
-    image: "/image/cas9.jpg",
-    hoverImage: "/image/cas1.jpg",
-  },
-];
+
+type AnyProduct = {
+  _id: string;
+  name: string;
+  price: number;
+  images?: Array<{ url?: string } | string> | null;
+};
 
 const NewArrival: FC<NewArrivalProps> = ({ title = "You Might Also Like" }) => {
+  const {
+    data: productsRaw = [],
+    isLoading,
+    isFetching,
+  } = useGetProductsQuery();
+  const loading = isLoading || isFetching;
+
+  // Normalize products -> ensure images is string[]
+  const products = useMemo(() => {
+    const arr = (productsRaw as AnyProduct[]) ?? [];
+    return arr.map((p) => {
+      const urls =
+        (p.images ?? [])
+          .map((it) => (typeof it === "string" ? it : it?.url))
+          .filter((u): u is string => !!u) || [];
+
+      return {
+        _id: p._id,
+        name: p.name,
+        price: p.price,
+        images: urls, // ProductCard will use images[0] and images[1] for hover
+      };
+    });
+  }, [productsRaw]);
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [touchedProduct, setTouchedProduct] = useState<number | null>(null);
+  const [itemsPerSlide, setItemsPerSlide] = useState(4);
   const sliderRef = useRef<HTMLDivElement>(null);
 
+  // Responsive items per slide
   useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
+    const compute = () => {
+      if (window.innerWidth <= 640) return 2;
+      if (window.innerWidth <= 1024) return 2;
+      return 4;
     };
-    checkIfMobile();
-    window.addEventListener("resize", checkIfMobile);
-    return () => window.removeEventListener("resize", checkIfMobile);
+    const apply = () => setItemsPerSlide(compute());
+    apply();
+    window.addEventListener("resize", apply);
+    return () => window.removeEventListener("resize", apply);
   }, []);
 
-
-  const handleAddToCart = (id: number) => {
-    console.log("Add to cart:", id);
-    
-  }
-  const getItemsPerSlide = () => {
-    if (typeof window === "undefined") return 4;
-    if (window.innerWidth <= 640) return 2;
-    if (window.innerWidth <= 1024) return 2;
-    return 4;
-  };
-
-  const totalSlides = Math.ceil(sampleProducts.length / getItemsPerSlide());
-
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % totalSlides);
-  const prevSlide = () =>
-    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+  // Slides count from real products
+  const totalSlides = useMemo(() => {
+    if (!products.length) return 1;
+    return Math.ceil(products.length / itemsPerSlide);
+  }, [products.length, itemsPerSlide]);
 
   useEffect(() => {
-    if (!isHovered) {
-      const interval = setInterval(nextSlide, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [currentSlide, isHovered, totalSlides]);
+    setCurrentSlide((prev) => Math.min(prev, Math.max(0, totalSlides - 1)));
+  }, [totalSlides]);
+
+  const nextSlide = useCallback(
+    () => setCurrentSlide((prev) => (prev + 1) % totalSlides),
+    [totalSlides]
+  );
+
+  const prevSlide = useCallback(
+    () => setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides),
+    [totalSlides]
+  );
+
+  // Autoplay (pause on hover)
+  useEffect(() => {
+    if (isHovered || totalSlides <= 1) return;
+    const id = setInterval(nextSlide, 5000);
+    return () => clearInterval(id);
+}, [isHovered, totalSlides, nextSlide]);
 
   return (
     <section className="px-4 py-10 md:px-10 w-full mx-auto bg-[#fafbfc]">
@@ -122,10 +95,16 @@ const NewArrival: FC<NewArrivalProps> = ({ title = "You Might Also Like" }) => {
             <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
           </div>
           <div className="flex gap-2">
-            <button onClick={prevSlide} className="p-2 border text-[#101828] rounded-full">
+            <button
+              onClick={prevSlide}
+              className="p-2 border text-[#101828] rounded-full"
+              aria-label="Previous">
               ‹
             </button>
-            <button onClick={nextSlide} className="p-2 border rounded-full text-[#101828]">
+            <button
+              onClick={nextSlide}
+              className="p-2 border rounded-full text-[#101828]"
+              aria-label="Next">
               ›
             </button>
           </div>
@@ -136,31 +115,58 @@ const NewArrival: FC<NewArrivalProps> = ({ title = "You Might Also Like" }) => {
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           ref={sliderRef}>
-          <div
-            className="flex transition-transform duration-700 ease-in-out"
-            style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
-            {Array.from({ length: totalSlides }).map((_, slideIndex) => (
-              <div key={slideIndex} className="w-full flex-shrink-0">
+          {loading ? (
+            <div
+              className={`grid gap-4 ${
+                itemsPerSlide === 4 ? "grid-cols-4" : "grid-cols-2"
+              }`}>
+              {Array.from({ length: itemsPerSlide }).map((_, i) => (
                 <div
-                  className={`grid gap-4 ${
-                    isMobile ? "grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-4"
-                  }`}>
-                  {sampleProducts
-                    .slice(
-                      slideIndex * getItemsPerSlide(),
-                      (slideIndex + 1) * getItemsPerSlide()
-                    )
-                    .map((product) => (
-                      <ProductCard
-                        key={product.id}
-                        product={product}
-                        onAddToCart={handleAddToCart}
-                      />
-                    ))}
+                  key={`skel-${i}`}
+                  className="border rounded-lg overflow-hidden h-[340px]">
+                  <div className="aspect-square bg-gray-100 animate-pulse" />
+                  <div className="p-4 space-y-3">
+                    <div className="h-5 bg-gray-100 rounded w-4/5 animate-pulse" />
+                    <div className="h-4 bg-gray-100 rounded w-3/5 animate-pulse" />
+                    <div className="h-9 bg-gray-100 rounded w-16 animate-pulse" />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : products.length === 0 ? (
+            <p className="text-gray-500">No products available.</p>
+          ) : (
+            <div
+              className="flex transition-transform duration-700 ease-in-out"
+              style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
+              {Array.from({ length: totalSlides }).map((_, slideIndex) => (
+                <div key={slideIndex} className="w-full flex-shrink-0">
+                  <div
+                    className={`grid gap-4 ${
+                      itemsPerSlide === 4 ? "grid-cols-4" : "grid-cols-2"
+                    }`}>
+                    {products
+                      .slice(
+                        slideIndex * itemsPerSlide,
+                        (slideIndex + 1) * itemsPerSlide
+                      )
+                      .map((p) => (
+                        <ProductCard
+                          key={p._id}
+                          product={{
+                            _id: p._id,
+                            name: p.name,
+                            price: p.price,
+                            
+                            images: p.images as string[],
+                          }}
+                        />
+                      ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex justify-center mt-6 gap-2">
@@ -168,9 +174,10 @@ const NewArrival: FC<NewArrivalProps> = ({ title = "You Might Also Like" }) => {
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className={`w-2 h-2 rounded-full ${
-                index === currentSlide ? "bg-black w-6" : "bg-gray-300"
+              className={`h-2 rounded-full transition-all ${
+                index === currentSlide ? "bg-black w-6" : "bg-gray-300 w-2"
               }`}
+              aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>

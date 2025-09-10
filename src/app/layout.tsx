@@ -6,10 +6,11 @@ import React, { ReactNode } from "react";
 import "./globals.css";
 import Header from "./static/header";
 import Footer from "./static/footer";
+import { Toaster } from "@/components/ui/sonner";
 
 import { usePathname } from "next/navigation";
 
-import Providers from "./provider"; 
+import Providers from "./provider";
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -18,16 +19,15 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   const pathname = usePathname();
 
-
   const hideHeaderFooter =
-    pathname.startsWith("/login") || pathname.startsWith("/signup"); 
+    pathname.startsWith("/login") || pathname.startsWith("/signup");
 
   return (
     <html lang="en">
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Your Store Name</title>
+        <title>Famous Store</title>
         <meta name="description" content="Your store description" />
       </head>
       <body>
@@ -37,10 +37,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
             style={{
               background: "linear-gradient(95deg, #000000 0%, #1A1A2E 100%)",
               color: "#ffffff",
-            }}
-          >
+            }}>
             {!hideHeaderFooter && <Header />}
             <main className="flex-grow">{children}</main>
+            <Toaster richColors position="top-center" />
             {!hideHeaderFooter && <Footer />}
           </div>
         </Providers>

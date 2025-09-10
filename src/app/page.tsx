@@ -5,6 +5,7 @@ import Category from "./components/web/category";
 import WhyChooseUs from "./components/web/WhyChooseUs";
 import NewArrival from "./components/web/NewArrival";
 import PopularProducts from "./components/web/Popular-product";
+import ScrollToTop from "./static/scrollToTop";
 // import VideoDisplaySection from "./components/web/VideoDisplaySection";
 import NewsletterPopup from "./components/web/NewsletterPopup";
 
@@ -18,6 +19,7 @@ export default function HomePage() {
       <WhyChooseUs />
       <PopularProducts />
       <NewsletterPopup />
+      <ScrollToTop />
     </div>
   );
 }

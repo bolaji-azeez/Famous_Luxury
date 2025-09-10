@@ -7,51 +7,86 @@ import Swal from "sweetalert2";
 import { saveToRecentlyViewed } from "@/utils/recentViewed";
 import { useRouter } from "next/navigation";
 
-interface Product {
-  id: number;
-  title: string;
+// Accept both shapes: {_id, images[]} or {id, image}
+type ProductLike = {
+  _id?: string; // Mongo id
+  id?: string | number; // fallback id
+  name: string;
   price: number;
   oldPrice?: number;
-  image: string;
+  images?: Array<{ url?: string } | string>; 
+  image?: string; 
   hoverImage?: string;
-}
+};
 
-interface ProductCardProps {
-  product: Product;
-  onQuickView?: (id: number) => void;
-}
+type ProductCardProps = {
+  product: ProductLike;
+  onQuickView?: (id: string) => void;
+  onAddToCart?: (id: string) => void; //
+};
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({
+  product,
+  onQuickView,
+  onAddToCart,
+}: ProductCardProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [flipped, setFlipped] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const { addToCart } = useCart();
   const router = useRouter();
 
+  const productId =
+    typeof product._id === "string"
+      ? product._id
+      : product.id != null
+      ? String(product.id)
+      : "";
+
+  // normalize url array
+  const urls = (product.images ?? [])
+    .map((it) => (typeof it === "string" ? it : it?.url))
+    .filter((u): u is string => !!u);
+
+  // pick first & second
+  const mainImg = urls[0] ?? product.image ?? "/placeholder.png";
+  const hoverImg = urls[1] ?? product.hoverImage ?? mainImg;
+
   useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+    const checkIfMobile = () => setIsMobile(window.innerWidth < 768);
     checkIfMobile();
     window.addEventListener("resize", checkIfMobile);
     return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
-  // Auto-flip effect on scroll into view
- 
-
   const handleAddToCart = () => {
+    if (!productId) {
+      Swal.fire({
+        icon: "error",
+        title: "Missing product id",
+        text: "Unable to add this item to cart.",
+        toast: true,
+        timer: 1800,
+        showConfirmButton: false,
+        position: "top-end",
+      });
+      return;
+    }
+
     addToCart({
-      id: product.id.toString(),
-      name: product.title,
+      id: productId,
+      name: product.name,
       price: product.price,
       quantity: 1,
-      image: product.image,
+      image: mainImg,
     });
+
+     onAddToCart?.(productId);
+
     Swal.fire({
       position: "top-end",
       icon: "success",
-      title: `${product.title} added to cart!`,
+      title: `${product.name} added to cart!`,
       showConfirmButton: false,
       timer: 1500,
       toast: true,
@@ -61,8 +96,14 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   const handleViewProduct = () => {
-    saveToRecentlyViewed(product);
-    router.push(`/detail`);
+    if (!productId) return;
+    saveToRecentlyViewed({
+      id: productId,
+      name: product.name,
+      price: product.price,
+      image: mainImg,
+    });
+    router.push(`/detail/${productId}`);
   };
 
   return (
@@ -76,7 +117,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         onClick={handleViewProduct}
         onMouseEnter={() => !isMobile && setFlipped(true)}
         onMouseLeave={() => !isMobile && setFlipped(false)}>
-        {/* Hot New & Discount Labels */}
+        {/* Labels */}
         <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
           <span className="bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded">
             New
@@ -86,30 +127,32 @@ export default function ProductCard({ product }: ProductCardProps) {
         <motion.div
           className="relative w-full h-full [transform-style:preserve-3d] transition-transform duration-500"
           animate={{ rotateY: flipped ? 180 : 0 }}>
-          {/* Front Side */}
+          {/* Front */}
           <div className="absolute w-full h-full [backface-visibility:hidden]">
             <Image
-              src={product.image}
-              alt={`${product.title}`}
+              src={mainImg}
+              alt={product.name}
               fill
               className="object-cover"
               priority
             />
           </div>
 
-          {/* Back Side */}
+          {/* Back */}
           <div className="absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] flex items-center justify-center bg-gray-100">
             <Image
-              src={product.hoverImage || product.image}
-              alt={`${product.title}`}
+              src={hoverImg}
+              alt={product.name}
               fill
               className="object-cover opacity-70"
             />
             <button
               onClick={(e) => {
-                e.stopPropagation(); // Prevent triggering card click
-                saveToRecentlyViewed(product);
-                router.push(`/detail`);
+                e.stopPropagation();
+                if (!productId) return;
+                saveToRecentlyViewed({ ...product, id: productId });
+                router.push(`/detail/${productId}`);
+                onQuickView?.(productId);
               }}
               className="absolute bg-[#232c3b] text-[#fefefe] py-2 px-2 rounded-sm shadow-sm hover:bg-gray-800">
               Quick View
@@ -118,11 +161,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         </motion.div>
       </div>
 
-      {/* Product Info */}
-      <h3 className="text-sm font-medium text-gray-900 mb-1">
-        {product.title}
-      </h3>
-      <div className="text-sm mb-2">
+      {/* Info */}
+      <h3 className="text-[18px]  text-left font-semibold text-gray-600 mb-1">{product.name}</h3>
+      <div className="text-sm mb-2 text-left">
         <span className="text-gray-900 font-semibold">
           ₦{product.price.toFixed(2)}
         </span>
@@ -133,7 +174,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
       </div>
 
-      {/* Add to Cart Button */}
+      {/* Add to Cart */}
       <button
         onClick={handleAddToCart}
         className="bg-[#232c3b] text-white w-full py-2 rounded-md text-sm hover:bg-gray-800 transition-colors">

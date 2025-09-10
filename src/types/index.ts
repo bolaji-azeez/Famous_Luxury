@@ -1,78 +1,77 @@
 import { ReactNode } from "react";
 
-
 export interface Product {
-  _id: string
-  name: string
-  description: string
-  price: number
-  originalPrice?: number
-  images: string[]
-  category: "watches" | "glasses"
-  subcategory: string
-  brand: string
-  isNew?: boolean
-  isBestSeller?: boolean
-  rating: number
-  reviewCount: number
-  inStock: boolean
-  tags: string[]
-  specifications: Record<string, string>
+  _id: string;
+  name: string;
+  description: string;
+  price: number;
+  originalPrice?: number;
+  images: string[];
+  category: "watches" | "glasses";
+  subcategory: string;
+  brand: string;
+  isNew?: boolean;
+  isBestSeller?: boolean;
+  rating: number;
+  reviewCount: number;
+  inStock: boolean;
+  tags: string[];
+  specifications: Record<string, string>;
 }
 
 export interface Category {
-  id: string
-  name: string
-  slug: string
-  image: string
-  description: string
-  productCount: number
-  parentCategory?: "watches" | "glasses"
+  id: string;
+  name: string;
+  slug: string;
+  image: string;
+  description: string;
+  productCount: number;
+  parentCategory?: "watches" | "glasses";
 }
 
 export interface Collection {
-  id: string
-  name: string
-  description: string
-  image: string
-  products: Product[]
-  slug: string
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  products: Product[];
+  slug: string;
 }
 
 export interface Review {
-  id: string
-  productId: string
-  customerName: string
-  customerImage?: string
-  rating: number
-  comment: string
-  date: string
-  verified: boolean
+  id: string;
+  productId: string;
+  customerName: string;
+  customerImage?: string;
+  rating: number;
+  comment: string;
+  date: string;
+  verified: boolean;
 }
 
 export interface HeroSlide {
-  id: string
-  title: string
-  subtitle: string
-  description: string
-  image: string
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  image: string;
   cta: {
-    text: string
-    link: string
-  }
-  category: "watches" | "glasses"
+    text: string;
+    link: string;
+  };
+  category: "watches" | "glasses";
 }
 
 export interface ApiResponse<T> {
-  data: T
-  success: boolean
-  message?: string
+  data: T;
+  success: boolean;
+  message?: string;
   pagination?: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export interface SlideData {
@@ -93,16 +92,15 @@ export interface Cases {
 }
 
 export interface Product2 {
-  id: number
-  name: string
-  description: string
-  price: number
-  image: string
-  hoverImage: string
-  isNew?: boolean
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  hoverImage: string;
+  isNew?: boolean;
+  quantity: number
 }
-
-
 
 export interface NavItem {
   name: string;
@@ -112,7 +110,6 @@ export interface NavItem {
   dropdown?: boolean;
   dropdownItems?: { name: string; path: string }[];
 }
-
 
 export interface Watch {
   id: string;
@@ -131,16 +128,18 @@ export interface CartItem {
   image?: string;
 }
 
-export  interface ProductCardProps {
-  product: {
-    id: number;
-    title: string;
-    price: number;
-    oldPrice?: number;
-    image: string;
-    hoverImage?: string;
-  };
-}
+export type ProductLike = {
+  _id: string;
+  name: string;
+  price: number;
+  images: (string | { url?: string })[]; // whatever you use
+};
+
+export type ProductCardProps = {
+  product: ProductLike;
+  onQuickView?: () => void;
+  onAddToCart?: () => void; // ← add this
+};
 
 export interface Brand {
   _id: string;
@@ -148,7 +147,6 @@ export interface Brand {
   productsCount?: number;
   status?: "active" | "inactive";
 }
-
 
 export interface BrandState {
   items: [];
@@ -158,14 +156,10 @@ export interface BrandState {
   totalPages: number;
 }
 
-
-
-
 export interface BrandWithProductsResponse {
   brand: Brand;
   products: Product[];
 }
-
 
 export interface SignupCredentials {
   email: string;
@@ -199,9 +193,7 @@ export interface APIError {
   statusCode?: number;
 }
 
-
-
-    export interface Order {
+export interface Order {
   _id: string;
   userId: {
     _id: string;
@@ -293,4 +285,29 @@ export interface OrderTableItem {
   amount: string;
   status: "pending" | "confirmed" | "delivered";
   date: string;
-}  
+}
+
+export type CreateOrderInput = {
+  customer: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    address: string;
+    city: string;
+  };
+  items: Array<{
+    productId: string;
+    name: string;
+    quantity: number;
+    unitPrice: number;
+  }>;
+  totalPrice: number;
+  totalQuantity: number;
+  currency: "NGN";
+  amounts?: {
+    subtotal: number;
+    shipping: number;
+    tax: number;
+  };
+  paymentMethod: "cash_on_delivery";
+};
