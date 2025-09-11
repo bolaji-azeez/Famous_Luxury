@@ -140,3 +140,4 @@ export const selectSignupError = (state: RootState) =>
 export const selectIsAuthenticated = (state: RootState) =>
   Boolean(state.userAuth.token);
 export default userSlice.reducer;
+

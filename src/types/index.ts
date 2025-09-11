@@ -99,7 +99,7 @@ export interface Product2 {
   image: string;
   hoverImage: string;
   isNew?: boolean;
-  quantity: number
+  quantity: number;
 }
 
 export interface NavItem {
@@ -287,27 +287,25 @@ export interface OrderTableItem {
   date: string;
 }
 
-export type CreateOrderInput = {
-  customer: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    address: string;
-    city: string;
-  };
-  items: Array<{
-    productId: string;
-    name: string;
-    quantity: number;
-    unitPrice: number;
-  }>;
-  totalPrice: number;
+// orderApi.ts
+export type CreateOrderBody = {
+  userId?: string; // make sure you can supply this
+  firstName: string;
+  lastName: string;
+  email: string;
+  address: string;
+  city: string;
   totalQuantity: number;
-  currency: "NGN";
-  amounts?: {
-    subtotal: number;
-    shipping: number;
-    tax: number;
-  };
-  paymentMethod: "cash_on_delivery";
+  totalPrice: number;
+  products: Array<{
+    productId: string; // no null, no _id
+    price: number;
+    quantity: number;
+  }>;
+};
+
+export type OrderProductInput = {
+  productId: string;   // string (not null)
+  price: number;
+  quantity: number;
 };

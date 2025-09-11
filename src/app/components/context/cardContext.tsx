@@ -1,3 +1,4 @@
+// cardContext.tsx
 "use client";
 import { createContext, useContext, useMemo, useState, ReactNode } from "react";
 
@@ -8,15 +9,21 @@ type CartContextValue = {
   addToCart: (item: CartItem) => void;
   removeFromCart: (id: string) => void;
   clearCart: () => void;
-  updateQuantity: (id: string, qty: number) => void;   // NEW
-  cartItemCount: number;                                // NEW
-  subtotal: number;                                     // NEW
+  updateQuantity: (id: string, qty: number) => void;
+  cartItemCount: number;
+  subtotal: number;
+
+  // NEW ↓↓↓
+  isCartOpen: boolean;
+  setIsCartOpen: (open: boolean) => void;
+  toggleCart: () => void;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false); // NEW
 
   const addToCart = (item: CartItem) =>
     setItems((prev) => {
@@ -30,27 +37,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
 
   const updateQuantity = (id: string, qty: number) =>
-    setItems((prev) => {
-      if (qty <= 0) return prev.filter((x) => x.id !== id);
-      return prev.map((x) => (x.id === id ? { ...x, quantity: qty } : x));
-    });
+    setItems((prev) => (qty <= 0 ? prev.filter((x) => x.id !== id) : prev.map((x) => (x.id === id ? { ...x, quantity: qty } : x))));
 
   const removeFromCart = (id: string) => setItems((p) => p.filter((x) => x.id !== id));
   const clearCart = () => setItems([]);
 
-  const cartItemCount = useMemo(
-    () => items.reduce((n, it) => n + it.quantity, 0),
-    [items]
-  );
+  const cartItemCount = useMemo(() => items.reduce((n, it) => n + it.quantity, 0), [items]);
+  const subtotal = useMemo(() => items.reduce((sum, it) => sum + it.price * it.quantity, 0), [items]);
 
-  const subtotal = useMemo(
-    () => items.reduce((sum, it) => sum + it.price * it.quantity, 0),
-    [items]
-  );
+  const toggleCart = () => setIsCartOpen((v) => !v); // NEW
 
   const value: CartContextValue = useMemo(
-    () => ({ items, addToCart, removeFromCart, clearCart, updateQuantity, cartItemCount, subtotal }),
-    [items, cartItemCount, subtotal]
+    () => ({ items, addToCart, removeFromCart, clearCart, updateQuantity, cartItemCount, subtotal, isCartOpen, setIsCartOpen, toggleCart }),
+    [items, cartItemCount, subtotal, isCartOpen]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

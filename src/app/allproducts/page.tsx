@@ -9,20 +9,25 @@ import ProductCard from "../ui/productcard";
 import { useGetBrandsQuery } from "@/features/brand/brandApi";
 import { useGetProductsQuery } from "@/features/products/productApi";
 
+// ---- Types ----
+type SortOption = "default" | "price-low" | "price-high" | "name-asc" | "name-desc";
+
 type AnyProduct = {
   _id: string;
   name: string;
   price: number;
   image?: string;
-  images?: { url?: string }[];
+  images?: (string | { url?: string })[]; // widened to support both strings and objects
   slug?: string;
 };
 
 type Brand = {
   _id: string;
   name: string;
+  slug?: string;
 };
 
+// ---- Utils ----
 function slugifyName(name: string, id?: string) {
   const base = (name || "")
     .toLowerCase()
@@ -31,12 +36,14 @@ function slugifyName(name: string, id?: string) {
   return id ? `${base}-${id.slice(-6)}` : base;
 }
 
+// ---- Skeleton ----
 const ProductCardSkeleton = () => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     transition={{ duration: 0.5 }}
-    className="border rounded-lg overflow-hidden h-[340px]">
+    className="border rounded-lg overflow-hidden h-[340px]"
+  >
     <div className="aspect-square bg-gray-100 animate-pulse" />
     <div className="p-4 space-y-3">
       <div className="h-5 bg-gray-100 rounded w-4/5 animate-pulse" />
@@ -49,31 +56,34 @@ const ProductCardSkeleton = () => (
   </motion.div>
 );
 
-function AllProductsSection({
-  sortOption,
-}: {
-  sortOption: "default" | "price-low" | "price-high" | "name-asc" | "name-desc";
-}) {
+// ---- All Products ----
+function AllProductsSection({ sortOption }: { sortOption: SortOption }) {
   const {
     data: productsRaw = [],
     isLoading,
     isFetching,
-  } = useGetProductsQuery();
+  } = useGetProductsQuery(undefined);
+
   const [visibleCount, setVisibleCount] = useState(8);
 
   const products = useMemo(() => {
     const arr = (productsRaw as AnyProduct[]) ?? [];
     const normalized = arr.map((p) => {
-      const img = p.image || p.images?.[0]?.url || "";
+      const firstImg =
+        p.image ||
+        (Array.isArray(p.images)
+          ? (typeof p.images[0] === "string" ? p.images[0] : p.images[0]?.url) || ""
+          : "");
       const slug = p.slug || slugifyName(p.name, p._id);
-      return { ...p, image: img, slug };
+      return { ...p, image: firstImg, slug };
     });
+
     const sorted = [...normalized];
     switch (sortOption) {
       case "price-low":
-        return sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
+        return sorted.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
       case "price-high":
-        return sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
+        return sorted.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
       case "name-asc":
         return sorted.sort((a, b) => a.name.localeCompare(b.name));
       case "name-desc":
@@ -113,7 +123,8 @@ function AllProductsSection({
                 opacity: 1,
                 transition: { staggerChildren: 0.06, delayChildren: 0.12 },
               },
-            }}>
+            }}
+          >
             {products.slice(0, visibleCount).map((p) => (
               <ProductCard
                 key={p._id}
@@ -121,12 +132,13 @@ function AllProductsSection({
                   _id: p._id,
                   name: p.name,
                   price: p.price,
-                  images: (p.images ?? [])
-                    .map((it) => (typeof it === "string" ? it : it?.url))
-                    .filter((v): v is string => typeof v === "string"),
+                  images:
+                    (p.images ?? [])
+                      .map((it) => (typeof it === "string" ? it : it?.url))
+                      .filter((v): v is string => typeof v === "string") || [],
                 }}
                 onQuickView={() => handleQuickView(p._id)}
-                onAddToCart={() => handleAddToCart(p._id as string)}
+                onAddToCart={() => handleAddToCart(p._id)}
               />
             ))}
           </motion.div>
@@ -135,7 +147,8 @@ function AllProductsSection({
             <div className="flex justify-center mt-8">
               <button
                 onClick={() => setVisibleCount(products.length)}
-                className="px-6 py-2 border bg-[#232c3b] border-gray-300 text-sm rounded-md text-white hover:opacity-90 transition-colors">
+                className="px-6 py-2 border bg-[#232c3b] border-gray-300 text-sm rounded-md text-white hover:opacity-90 transition-colors"
+              >
                 See More Products ({products.length - 8})
               </button>
             </div>
@@ -146,6 +159,7 @@ function AllProductsSection({
   );
 }
 
+// ---- Brand Section ----
 function BrandSection({
   brandId,
   title,
@@ -155,18 +169,17 @@ function BrandSection({
   brandId: string;
   title: string;
   slug: string;
-  sortOption: "default" | "price-low" | "price-high" | "name-asc" | "name-desc";
+  sortOption: SortOption;
 }) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const [visibleCount, setVisibleCount] = useState(4);
 
-  // 👉 Fetch this brand's products
   const sortParam = useMemo(() => {
     switch (sortOption) {
       case "price-low":
         return "price";
       case "price-high":
-        return "-price"; 
+        return "-price";
       case "name-asc":
         return "name";
       case "name-desc":
@@ -183,18 +196,23 @@ function BrandSection({
   });
 
   const products = useMemo(() => {
-    const arr: AnyProduct[] = productsRaw ?? [];
+    const arr = (productsRaw as AnyProduct[]) ?? [];
     const normalized = arr.map((p) => ({
       ...p,
-      image: p.image || p.images?.[0]?.url || "",
+      image:
+        p.image ||
+        (Array.isArray(p.images)
+          ? (typeof p.images[0] === "string" ? p.images[0] : p.images[0]?.url) || ""
+          : ""),
       slug: p.slug || slugifyName(p.name, p._id),
     }));
+
     const sorted = [...normalized];
     switch (sortOption) {
       case "price-low":
-        return sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
+        return sorted.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
       case "price-high":
-        return sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
+        return sorted.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
       case "name-asc":
         return sorted.sort((a, b) => a.name.localeCompare(b.name));
       case "name-desc":
@@ -205,6 +223,7 @@ function BrandSection({
   }, [productsRaw, sortOption]);
 
   const showAll = visibleCount >= products.length;
+
   const handleQuickView = (id: string) => console.log("Quick view:", id);
   const handleAddToCart = (id: string) => console.log("Add to cart:", id);
 
@@ -215,7 +234,8 @@ function BrandSection({
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, margin: "0px 0px -100px 0px" }}
-      transition={{ duration: 0.5 }}>
+      transition={{ duration: 0.5 }}
+    >
       <h2 className="text-xl font-semibold text-gray-800 mb-6">{title}</h2>
 
       {isFetching && products.length === 0 ? (
@@ -239,7 +259,8 @@ function BrandSection({
                 opacity: 1,
                 transition: { staggerChildren: 0.1, delayChildren: 0.2 },
               },
-            }}>
+            }}
+          >
             {products.slice(0, visibleCount).map((p) => (
               <ProductCard
                 key={p._id}
@@ -247,9 +268,10 @@ function BrandSection({
                   _id: p._id,
                   name: p.name,
                   price: p.price,
-                  images: (p.images ?? [])
-                    .map((it) => (typeof it === "string" ? it : it?.url))
-                    .filter((v): v is string => typeof v === "string"),
+                  images:
+                    (p.images ?? [])
+                      .map((it) => (typeof it === "string" ? it : it?.url))
+                      .filter((v): v is string => typeof v === "string") || [],
                 }}
                 onQuickView={() => handleQuickView(p._id)}
                 onAddToCart={() => handleAddToCart(p._id)}
@@ -263,10 +285,12 @@ function BrandSection({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="flex justify-center mt-8">
+              className="flex justify-center mt-8"
+            >
               <button
                 onClick={() => setVisibleCount(products.length)}
-                className="px-6 py-2 border bg-[#232c3b] border-gray-300 text-sm rounded-md text-white hover:opacity-90 transition-colors">
+                className="px-6 py-2 border bg-[#232c3b] border-gray-300 text-sm rounded-md text-white hover:opacity-90 transition-colors"
+              >
                 See More {title} Products ({products.length - 4})
               </button>
             </motion.div>
@@ -277,11 +301,11 @@ function BrandSection({
   );
 }
 
+// ---- Page ----
 export default function BrandSections() {
-  const { data: brandsRaw = [], isLoading: loadingBrands } =
-    useGetBrandsQuery();
+  const { data: brandsRaw = [], isLoading: loadingBrands } = useGetBrandsQuery();
 
- const brands = useMemo(
+  const brands = useMemo(
     () =>
       ((brandsRaw as Brand[]) ?? []).map((b) => ({
         ...b,
@@ -290,9 +314,7 @@ export default function BrandSections() {
     [brandsRaw]
   );
 
-  const [sortOption, setSortOption] = useState<
-    "default" | "price-low" | "price-high" | "name-asc" | "name-desc"
-  >("default");
+  const [sortOption, setSortOption] = useState<SortOption>("default");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSlug, setActiveSlug] = useState("");
 
@@ -302,21 +324,21 @@ export default function BrandSections() {
     return brands.filter((b) => b.name.toLowerCase().includes(q));
   }, [brands, searchQuery]);
 
-  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   useEffect(() => {
     const obs = new IntersectionObserver(
       (entries) => {
-        entries.forEach((e) => e.isIntersecting && setActiveSlug(e.target.id));
+        entries.forEach((e) => {
+          if (e.isIntersecting) setActiveSlug(e.target.id);
+        });
       },
       { rootMargin: "-100px 0px -70% 0px", threshold: 0.1 }
     );
+
     filtered.forEach((b) => {
-      const el = document.getElementById(b.slug);
-      if (el) {
-        sectionRefs.current[b.slug] = el as HTMLElement;
-        obs.observe(el);
-      }
+      const el = document.getElementById(b.slug!);
+      if (el) obs.observe(el);
     });
+
     return () => obs.disconnect();
   }, [filtered]);
 
@@ -353,7 +375,8 @@ export default function BrandSections() {
             <select
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value as SortOption)}
-              className="border border-gray-300 rounded-sm px-4 py-2 text-sm text-gray-700">
+              className="border border-gray-300 rounded-sm px-4 py-2 text-sm text-gray-700"
+            >
               <option value="default">Sort by: Default</option>
               <option value="price-low">Price: Low to High</option>
               <option value="price-high">Price: High to Low</option>
@@ -367,23 +390,20 @@ export default function BrandSections() {
         <div className="w-full py-3 px-4 border-t border-gray-200">
           <div className="flex gap-3 overflow-x-auto scrollbar-hide">
             {loadingBrands ? (
-              <div className="w-full text-center py-2 text-gray-500">
-                Loading brands…
-              </div>
+              <div className="w-full text-center py-2 text-gray-500">Loading brands…</div>
             ) : filtered.length === 0 ? (
-              <div className="w-full text-center py-2 text-gray-500">
-                No matching brands
-              </div>
+              <div className="w-full text-center py-2 text-gray-500">No matching brands</div>
             ) : (
               filtered.map((b) => (
                 <button
                   key={b._id}
-                  onClick={() => scrollToBrand(b.slug)}
+                  onClick={() => scrollToBrand(b.slug!)}
                   className={`px-4 py-2 rounded-sm text-sm font-medium whitespace-nowrap transition ${
                     activeSlug === b.slug
                       ? "bg-black text-white"
                       : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
-                  }`}>
+                  }`}
+                >
                   {b.name}
                 </button>
               ))
@@ -407,7 +427,7 @@ export default function BrandSections() {
               key={b._id}
               brandId={b._id}
               title={b.name}
-              slug={b.slug}
+              slug={b.slug!}
               sortOption={sortOption}
             />
           ))

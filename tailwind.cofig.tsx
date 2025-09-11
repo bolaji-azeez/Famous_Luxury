@@ -1,29 +1,26 @@
+// tailwind.config.ts
 import type { Config } from "tailwindcss";
-import defaultConfig from "tailwindcss/defaultConfig";
+import animate from "tailwindcss-animate";
+import forms from "@tailwindcss/forms";
 
 const config: Config = {
-  ...defaultConfig,
   content: [
-    ...defaultConfig.content,
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "*.{js,ts,jsx,tsx,mdx}",
+    "./pages/**/*.{ts,tsx,mdx}",
+    "./components/**/*.{ts,tsx,mdx}",
+    "./app/**/*.{ts,tsx,mdx}",
   ],
   theme: {
-    ...defaultConfig.theme,
     extend: {
       fontFamily: {
-        sans: ["Lato", "sans-serif"], // Default sans-serif font
-        serif: ["Playfair Display", "serif"], // Custom class
+        sans: ["Lato", "ui-sans-serif", "system-ui", "sans-serif"],
+        serif: ["Playfair Display", "ui-serif", "Georgia", "serif"],
       },
       colors: {
-        ...defaultConfig.theme.extend.colors,
-
         primary: {
-          DEFAULT: "#D4AF37", // Example Gold color
+          DEFAULT: "#D4AF37",
           hover: "#B89B30",
         },
+        // avoid overriding Tailwind's built-in gray unless you *intend* to
         gray: {
           100: "#f7f7f7",
           200: "#e0e0e0",
@@ -32,8 +29,8 @@ const config: Config = {
           500: "#757575",
           600: "#5a5a5a",
           700: "#424242",
-          800: "#212121", // Dark background
-          900: "#121212", // Even darker background
+          800: "#212121",
+          900: "#121212",
         },
         luxury: {
           gold: "#D4AF37",
@@ -66,11 +63,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [
-    ...defaultConfig.plugins,
-    "tailwindcss-animate",
-    "@tailwindcss/forms",
-  ],
+  plugins: [animate, forms],
 };
 
 export default config;

@@ -8,17 +8,19 @@ import Link from "next/link";
 import { PiArrowLeft } from "react-icons/pi";
 import Image from "next/image";
 import clsx from "clsx";
-import { useCreateOrderMutation } from "@/features/order/orderApi";
+
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import type { SerializedError } from "@reduxjs/toolkit";
-import { CreateOrderInput } from "@/types";
-
+import {
+  useCreateOrderMutation,
+  type CreateOrderBody,
+} from "@/features/order/orderApi";
 
 type ApiErrorBody = {
   message?: string;
-  errors?: Record<string, string >;
+  errors?: Record<string, string>;
 };
 
 function isFetchBaseQueryError(err: unknown): err is FetchBaseQueryError {
@@ -33,8 +35,6 @@ function isSerializedError(err: unknown): err is SerializedError {
   );
 }
 type ErrorMap = Record<string, string>;
-
-
 
 export default function CheckoutPage() {
   // ✅ use items from the cart context
@@ -63,9 +63,11 @@ export default function CheckoutPage() {
       "firstName",
       "lastName",
       "email",
+      "phone",
       "address",
       "city",
     ] as const;
+
     const next: ErrorMap = {};
 
     for (const name of required) {
@@ -108,34 +110,30 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     const fd = new FormData(form);
-    const payload: CreateOrderInput = {
-      customer: {
-        firstName: String(fd.get("firstName") ?? ""),
-        lastName: String(fd.get("lastName") ?? ""),
-        email: String(fd.get("email") ?? ""),
-        address: String(fd.get("address") ?? ""),
-        city: String(fd.get("city") ?? ""),
-      },
-      products: items.map((item) => ({
-        productId: String(item.id), // <-- must be product._id from DB
-        price: Number(item.price || 0), // <-- price (not unitPrice)
-        quantity: Number(item.quantity || 0),
-        name: item.name, // snapshot so modal can show even if populate fails
-      })),
-      totalPrice: Number(total.toFixed(2)),
+
+    const firstName = String(fd.get("firstName") ?? "").trim();
+    const lastName = String(fd.get("lastName") ?? "").trim();
+    const email = String(fd.get("email") ?? "").trim();
+    const address = String(fd.get("address") ?? "").trim();
+    const city = String(fd.get("city") ?? "").trim();
+
+    const payload: CreateOrderBody = {
+      firstName,
+      lastName,
+      email,
+      address,
+      city,
       totalQuantity: totalItems,
-      currency: "NGN",
-      amounts: {
-        subtotal: Number(subtotal.toFixed(2)),
-        shipping: Number(shipping.toFixed(2)),
-        tax: Number(tax.toFixed(2)),
-      },
-      paymentMethod: "cash_on_delivery",
+      totalPrice: Number(total.toFixed(2)),
+      products: items.map((item) => ({
+        productId: String(item.id),
+        price: Number(item.price || 0),
+        quantity: Number(item.quantity || 0),
+      })),
     };
+    await createOrder(payload).unwrap();
 
     try {
-      await createOrder(payload).unwrap();
-
       toast.success("Order placed successfully 🎉", {
         description: "Thank you! We’re preparing your order.",
       });
@@ -174,10 +172,11 @@ export default function CheckoutPage() {
       }
 
       // Build your field -> message map without any
+
       const next: ErrorMap = {};
       if (fieldErrors) {
         for (const [k, v] of Object.entries(fieldErrors)) {
-          next[k] = typeof v === "string" ? v : v.message ?? "Invalid value.";
+          next[k] = Array.isArray(v) ? v[0] : v;
         }
       }
       setShowErrorBanner(true);
@@ -192,7 +191,6 @@ export default function CheckoutPage() {
     } finally {
       setIsSubmitting(false);
     }
-    toast.error(apiMessage);
   }
 
   return (
@@ -438,6 +436,27 @@ export default function CheckoutPage() {
                 />
                 {errors.address && (
                   <p className="mt-1 text-xs text-red-600">{errors.address}</p>
+                )}
+              </div>
+              <div>
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone
+                </label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  required
+                  aria-invalid={Boolean(errors.phone)}
+                  className={clsx(
+                    "text-gray-700",
+                    errors.phone && "border-red-500 focus-visible:ring-red-300"
+                  )}
+                />
+                {errors.phone && (
+                  <p className="mt-1 text-xs text-red-600">{errors.phone}</p>
                 )}
               </div>
 
