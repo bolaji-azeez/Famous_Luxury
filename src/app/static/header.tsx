@@ -61,7 +61,7 @@ const Header: React.FC = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchRef = useRef<HTMLDivElement>(null);
-  const firstMenuItemRef = useRef<HTMLAnchorElement>(null);
+  const firstMenuItemRef = useRef<HTMLAnchorElement>(null!);
 
   // Close mobile menu on route change
   useEffect(() => setMobileMenuOpen(false), [pathname]);
@@ -98,7 +98,7 @@ const Header: React.FC = () => {
 
   const { data: searchResults = [], isFetching: searching } =
     useGetProductsQuery(
-      shouldSearch ? { search: debounced.trim(), limit: 8 } : (skipToken)
+      shouldSearch ? { search: debounced.trim(), limit: 8 } : skipToken
     );
 
   const productResults = (searchResults as Product[]) ?? [];
@@ -118,13 +118,17 @@ const Header: React.FC = () => {
   );
 
   const actionItems: NavItem[] = useMemo(
-    () => [{ name: "User", path: "/login", icon: <PiUser className="w-5 h-5" /> }],
+    () => [
+      { name: "User", path: "/login", icon: <PiUser className="w-5 h-5" /> },
+    ],
     []
   );
 
   const renderNavItem = (item: NavItem, isMobile = false) => {
     const baseClasses = `text-sm font-medium ${
-      pathname === item.path ? "text-black font-semibold" : "text-gray-700 hover:text-black"
+      pathname === item.path
+        ? "text-black font-semibold"
+        : "text-gray-700 hover:text-black"
     } ${isMobile ? "py-2" : ""}`;
 
     if (item.path) {
@@ -134,8 +138,7 @@ const Header: React.FC = () => {
           href={item.path}
           className={baseClasses}
           ref={isMobile && item.name === "Home" ? firstMenuItemRef : null}
-          aria-current={pathname === item.path ? "page" : undefined}
-        >
+          aria-current={pathname === item.path ? "page" : undefined}>
           {item.name}
         </Link>
       );
@@ -161,14 +164,12 @@ const Header: React.FC = () => {
         <button
           className="lg:hidden text-gray-700"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle menu"
-        >
+          aria-label="Toggle menu">
           <svg
             className="w-6 h-6"
             fill="none"
             stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+            viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -206,9 +207,11 @@ const Header: React.FC = () => {
             className="text-gray-700 hover:text-black"
             aria-label="Search"
             whileTap={{ scale: 0.85 }}
-            animate={{ scale: searchOpen ? 1.2 : 1, rotate: searchOpen ? 90 : 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 10 }}
-          >
+            animate={{
+              scale: searchOpen ? 1.2 : 1,
+              rotate: searchOpen ? 90 : 0,
+            }}
+            transition={{ type: "spring", stiffness: 300, damping: 10 }}>
             <IoSearch className="w-5 h-5" />
           </motion.button>
 
@@ -220,8 +223,7 @@ const Header: React.FC = () => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute top-10 right-0 bg-white border border-gray-200 shadow-lg w-[22rem] rounded-lg p-4 z-50"
-              >
+                className="absolute top-10 right-0 bg-white border border-gray-200 shadow-lg w-[22rem] rounded-lg p-4 z-50">
                 <div className="flex items-center border-b border-gray-300 mb-3">
                   <input
                     type="text"
@@ -247,8 +249,7 @@ const Header: React.FC = () => {
                       setSearchOpen(false);
                     }}
                     className="text-gray-600 hover:text-black"
-                    aria-label="Close search"
-                  >
+                    aria-label="Close search">
                     <IoClose className="w-5 h-5" />
                   </button>
                 </div>
@@ -256,7 +257,9 @@ const Header: React.FC = () => {
                 {/* Results */}
                 <div className="max-h-80 overflow-auto">
                   {!shouldSearch ? (
-                    <p className="text-gray-500 text-sm">Type at least 2 characters…</p>
+                    <p className="text-gray-500 text-sm">
+                      Type at least 2 characters…
+                    </p>
                   ) : searching ? (
                     <p className="text-gray-500 text-sm">Searching…</p>
                   ) : productResults.length === 0 ? (
@@ -266,17 +269,15 @@ const Header: React.FC = () => {
                       {productResults.map((p) => {
                         const img = p.images?.[0]?.url || "/placeholder.png";
                         // Use the Brand type here and handle undefined/null cases
-                        const brand = brandNameOf(p.brand as
-                          | Brand
-                          | undefined
-                          | null);
+                        const brand = brandNameOf(
+                          p.brand as Brand | undefined | null
+                        );
                         return (
                           <li key={p._id}>
                             <Link
                               href={`/detail/${p._id}`}
                               className="flex items-center gap-3 hover:bg-gray-50 rounded px-2 py-2"
-                              onClick={() => setSearchOpen(false)}
-                            >
+                              onClick={() => setSearchOpen(false)}>
                               <div className="relative w-10 h-10 rounded overflow-hidden bg-gray-100 border">
                                 <Image
                                   src={img}
@@ -309,8 +310,7 @@ const Header: React.FC = () => {
                         searchQuery.trim()
                       )}`}
                       className="block text-center text-sm font-medium text-[#111] hover:underline"
-                      onClick={() => setSearchOpen(false)}
-                    >
+                      onClick={() => setSearchOpen(false)}>
                       View all results for “{searchQuery.trim()}”
                     </Link>
                   </div>
@@ -325,14 +325,15 @@ const Header: React.FC = () => {
           </div>
 
           {/* User */}
-          <nav className="flex items-center space-x-4" aria-label="User actions">
+          <nav
+            className="flex items-center space-x-4"
+            aria-label="User actions">
             {actionItems.map((item) => (
               <Link
                 key={item.name}
                 href={item.path!}
                 className="text-gray-700 hover:text-black"
-                aria-label={item.name}
-              >
+                aria-label={item.name}>
                 {item.icon}
               </Link>
             ))}
@@ -354,6 +355,10 @@ const Header: React.FC = () => {
           actionItems={actionItems}
           renderNavItem={renderNavItem}
           firstMenuItemRef={firstMenuItemRef}
+          // ✅ add these 3 required props:
+          searchQuery={searchQuery}
+          onSearchChange={(e) => setSearchQuery(e.target.value)}
+          isSearching={searching}
         />
       )}
     </header>

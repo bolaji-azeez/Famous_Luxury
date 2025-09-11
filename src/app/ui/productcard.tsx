@@ -150,7 +150,12 @@ export default function ProductCard({
               onClick={(e) => {
                 e.stopPropagation();
                 if (!productId) return;
-                saveToRecentlyViewed({ ...product, id: productId });
+                saveToRecentlyViewed({
+                  id: productId,
+                  name: product.name,
+                  price: product.price,
+                  image: mainImg,
+                });
                 router.push(`/detail/${productId}`);
                 onQuickView?.(productId);
               }}
