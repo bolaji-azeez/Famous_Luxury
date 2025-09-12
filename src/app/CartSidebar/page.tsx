@@ -1,14 +1,21 @@
 "use client";
 import React, { useEffect } from "react";
-import { useCart } from "../components/context/cardContext"; 
+import { useCart } from "../components/context/cardContext";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { FiTrash2, FiPlus, FiMinus } from "react-icons/fi";
 
+const formatNaira = (value: number) =>
+  new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 2,
+  }).format(value);
+
 const CartSidebar = () => {
   const {
-    items,                 
+    items,
     removeFromCart,
     updateQuantity,
     cartItemCount,
@@ -20,7 +27,9 @@ const CartSidebar = () => {
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [isOpen]);
 
   return (
@@ -42,7 +51,7 @@ const CartSidebar = () => {
         {isOpen && (
           <>
             <motion.div
-              className="fixed inset-0 bg-black bg-opacity-50 z-40 p-4"
+              className="fixed inset-0 bg-transparent bg-opacity-20 z-40 p-4"
               onClick={toggleSidebar}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -84,7 +93,10 @@ const CartSidebar = () => {
                 ) : (
                   <div className="space-y-4">
                     {items.map((item) => (
-                      <div key={item.id} className="flex gap-4 pb-4 border-b border-gray-100">
+                      <div
+                        key={item.id}
+                        className="flex gap-4 pb-4 border-b border-gray-100"
+                      >
                         <div className="relative h-24 w-20 flex-shrink-0 overflow-hidden rounded">
                           <Link href="/detail">
                             <Image
@@ -99,7 +111,9 @@ const CartSidebar = () => {
 
                         <div className="flex-1">
                           <div className="flex justify-between text-gray-400">
-                            <h3 className="font-medium text-sm line-clamp-1">{item.name}</h3>
+                            <h3 className="font-medium text-sm line-clamp-1">
+                              {item.name}
+                            </h3>
                             <button
                               onClick={() => removeFromCart(item.id)}
                               className="text-gray-400 hover:text-red-500 transition-colors"
@@ -109,21 +123,33 @@ const CartSidebar = () => {
                             </button>
                           </div>
 
-                          <p className="text-sm text-gray-600 mt-1">${item.price.toFixed(2)}</p>
+                          {/* unit price */}
+                          <p className="text-sm text-gray-600 mt-1">
+                            {formatNaira(item.price)}
+                          </p>
 
                           <div className="flex items-center justify-between mt-2">
                             <div className="flex items-center border border-gray-200 rounded">
                               <button
-                                onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                                onClick={() =>
+                                  updateQuantity(
+                                    item.id,
+                                    Math.max(1, item.quantity - 1)
+                                  )
+                                }
                                 className="px-2 py-1 text-gray-500 hover:bg-gray-100 transition-colors"
                                 disabled={item.quantity <= 1}
                                 aria-label="Decrease quantity"
                               >
                                 <FiMinus size={14} />
                               </button>
-                              <span className="px-2 text-sm w-8 text-center">{item.quantity}</span>
+                              <span className="px-2 text-sm w-8 text-center">
+                                {item.quantity}
+                              </span>
                               <button
-                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                onClick={() =>
+                                  updateQuantity(item.id, item.quantity + 1)
+                                }
                                 className="px-2 py-1 text-gray-500 hover:bg-gray-100 transition-colors"
                                 aria-label="Increase quantity"
                               >
@@ -131,8 +157,9 @@ const CartSidebar = () => {
                               </button>
                             </div>
 
+                            {/* line total */}
                             <p className="text-sm font-medium">
-                              NGN{(item.price * item.quantity).toFixed(2)}
+                              {formatNaira(item.price * item.quantity)}
                             </p>
                           </div>
                         </div>
@@ -146,7 +173,9 @@ const CartSidebar = () => {
                 <div className="p-4 border-t">
                   <div className="flex justify-between mb-4">
                     <span className="font-medium">Subtotal:</span>
-                    <span className="font-bold">NGN{subtotal.toFixed(2)}</span>
+                    <span className="font-bold">
+                      {formatNaira(subtotal)}
+                    </span>
                   </div>
                   <Link href="/checkout-page" onClick={toggleSidebar}>
                     <button className="w-full bg-black text-white py-3 rounded hover:bg-gray-800 transition-colors">

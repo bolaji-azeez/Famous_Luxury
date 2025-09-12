@@ -1,6 +1,6 @@
 "use client";
 
-// import { Hero } from "./components/web/hero";
+import {Hero} from "./components/web/hero";
 import Category from "./components/web/category";
 import WhyChooseUs from "./components/web/WhyChooseUs";
 import NewArrival from "./components/web/NewArrival";
@@ -12,12 +12,13 @@ import NewsletterPopup from "./components/web/NewsletterPopup";
 export default function HomePage() {
   return (
     <div className="relative min-h-screen">
-      {/* <Hero /> */}
-      <Category />
-
+      <Hero />
+      
       <NewArrival />
-      <WhyChooseUs />
+      
+      <Category />
       <PopularProducts />
+      <WhyChooseUs />
       <NewsletterPopup />
       <ScrollToTop />
     </div>

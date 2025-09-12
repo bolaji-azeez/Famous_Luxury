@@ -7,23 +7,30 @@ import Swal from "sweetalert2";
 import { saveToRecentlyViewed } from "@/utils/recentViewed";
 import { useRouter } from "next/navigation";
 
-// Accept both shapes: {_id, images[]} or {id, image}
 type ProductLike = {
-  _id?: string; // Mongo id
-  id?: string | number; // fallback id
+  _id?: string;
+  id?: string | number;
   name: string;
   price: number;
   oldPrice?: number;
-  images?: Array<{ url?: string } | string>; 
-  image?: string; 
+  images?: Array<{ url?: string } | string>;
+  image?: string;
   hoverImage?: string;
 };
 
 type ProductCardProps = {
   product: ProductLike;
   onQuickView?: (id: string) => void;
-  onAddToCart?: (id: string) => void; //
+  onAddToCart?: (id: string) => void;
 };
+
+// 🔢 Standard NGN formatter (adds commas + ₦)
+const formatNaira = (value: number) =>
+  new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 2,
+  }).format(value);
 
 export default function ProductCard({
   product,
@@ -43,12 +50,10 @@ export default function ProductCard({
       ? String(product.id)
       : "";
 
-  // normalize url array
   const urls = (product.images ?? [])
     .map((it) => (typeof it === "string" ? it : it?.url))
     .filter((u): u is string => !!u);
 
-  // pick first & second
   const mainImg = urls[0] ?? product.image ?? "/placeholder.png";
   const hoverImg = urls[1] ?? product.hoverImage ?? mainImg;
 
@@ -81,7 +86,7 @@ export default function ProductCard({
       image: mainImg,
     });
 
-     onAddToCart?.(productId);
+    onAddToCart?.(productId);
 
     Swal.fire({
       position: "top-end",
@@ -167,14 +172,18 @@ export default function ProductCard({
       </div>
 
       {/* Info */}
-      <h3 className="text-[18px]  text-left font-semibold text-gray-600 mb-1">{product.name}</h3>
+      <h3 className="text-[18px] text-left font-semibold text-gray-600 mb-1">
+        {product.name}
+      </h3>
+
+      {/* Prices (formatted as standard NGN with commas) */}
       <div className="text-sm mb-2 text-left">
         <span className="text-gray-900 font-semibold">
-          ₦{product.price.toFixed(2)}
+          {formatNaira(product.price)}
         </span>
-        {product.oldPrice && (
+        {typeof product.oldPrice === "number" && (
           <span className="ml-2 text-xs text-gray-400 line-through">
-            ₦{product.oldPrice.toFixed(2)}
+            {formatNaira(product.oldPrice)}
           </span>
         )}
       </div>
