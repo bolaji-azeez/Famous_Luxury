@@ -3,7 +3,6 @@ import React, { forwardRef } from "react";
 import { Separator } from "@/components/ui/separator";
 import { IoSearch } from "react-icons/io5";
 import type { NavItem } from "../../types";
-import Link from "next/link";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -28,7 +27,6 @@ const MobileMenu = forwardRef<HTMLDivElement, MobileMenuProps>(
       navItems,
       actionItems,
       renderNavItem,
-      firstMenuItemRef,
     },
     ref
   ) => {
@@ -100,17 +98,6 @@ const MobileMenu = forwardRef<HTMLDivElement, MobileMenuProps>(
           {actionItems
             .filter((item) => item.name !== "Search" && item.name !== "Cart")
             .map((item) => renderNavItem(item, true))}
-          <Link
-            href="/profile"
-            className="py-2 text-gray-700 hover:text-black text-sm font-medium"
-            ref={firstMenuItemRef}>
-            My Profile
-          </Link>
-          <Link
-            href="/wishlist"
-            className="py-2 text-gray-700 hover:text-black text-sm font-medium">
-            My Wishlist
-          </Link>
         </nav>
       </div>
     );

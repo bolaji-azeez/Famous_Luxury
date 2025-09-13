@@ -58,19 +58,13 @@ const socialLinks = [
 const Footer: React.FC = () => {
   return (
     <footer className="bg-gray-900 text-white">
-      {/* Main Footer */}
-      {/* w-[90%] is good, container classes are often more flexible with min/max width */}
-      <div className="container w-[90%] max-w-7xl mx-auto px-4 py-10 md:py-14">
-        {/* Adjusted max-w-7xl for a common large container width, adjust as needed */}
+      <div className="container w-[93.5%] max-w-7xl mx-auto px-4 py-10 md:py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-          {/* Brand Section */}
           <div>
             <Link href="/" className="inline-block mb-4">
-              {/* Consider a logo image here if available */}
               <span className="text-3xl font-extrabold tracking-tight">
                 Famous Luxuries
               </span>{" "}
-              {/* More luxurious brand name */}
             </Link>
             <p className="text-gray-300 mb-5 text-sm leading-relaxed">
               Experience unparalleled craftsmanship and timeless sophistication.

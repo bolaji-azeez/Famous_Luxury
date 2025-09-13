@@ -1,7 +1,7 @@
 "use client";
 
 import {Hero} from "./components/web/hero";
-import Category from "./components/web/category";
+
 import WhyChooseUs from "./components/web/WhyChooseUs";
 import NewArrival from "./components/web/NewArrival";
 import PopularProducts from "./components/web/Popular-product";
@@ -16,9 +16,9 @@ export default function HomePage() {
       
       <NewArrival />
       
-      <Category />
+       <WhyChooseUs />
       <PopularProducts />
-      <WhyChooseUs />
+    
       <NewsletterPopup />
       <ScrollToTop />
     </div>
