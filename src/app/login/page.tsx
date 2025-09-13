@@ -141,7 +141,7 @@ export default function AuthPage() {
               className={`flex-1 py-3 sm:py-4 font-medium ${
                 isLogin ? "text-white border-b-2 border-white" : "text-gray-300"
               }`}>
-              I HAVE AN ACCOUNT
+              Login
             </button>
             <button
               onClick={() => {
@@ -153,7 +153,7 @@ export default function AuthPage() {
                   ? "text-white border-b-2 border-white"
                   : "text-gray-300"
               }`}>
-              I DO NOT HAVE AN ACCOUNT
+              Sign Up
             </button>
           </div>
 

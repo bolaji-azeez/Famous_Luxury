@@ -23,14 +23,14 @@ export const Hero = () => {
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
-                asChild
-                variant="default"
-                size="lg"
-                className="hover:translate-x-1 transition-transform">
-                <a href="/shop" className="group flex items-center">
-                  Explore our collection
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform ml-2" />
-                </a>
+              asChild
+              variant="default"
+              size="lg"
+              className="hover:translate-x-1 transition-transform">
+              <a href="/allproducts" className="group flex items-center">
+                Explore our collection
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform ml-2" />
+              </a>
               </Button>
             </div>
           </div>

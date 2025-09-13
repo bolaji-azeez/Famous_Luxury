@@ -48,8 +48,8 @@ export default function CheckoutPage() {
     0
   );
   const shipping = items.length > 0 ? 5.0 : 0; // adjust to your business rules
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
+
+  const total = subtotal + shipping;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<ErrorMap>({});
@@ -266,10 +266,7 @@ export default function CheckoutPage() {
                   <span className="text-gray-600">Shipping</span>
                   <span className="text-gray-600">₦{shipping.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Tax</span>
-                  <span className="text-gray-600">₦{tax.toFixed(2)}</span>
-                </div>
+
                 <div className="flex justify-between font-bold text-lg pt-2">
                   <span>Total</span>
                   <span className="text-gray-600">₦{total.toFixed(2)}</span>
