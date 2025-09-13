@@ -102,7 +102,7 @@ export default function PopularProducts() {
         </div>
       )}
 
-      <div className="max-w-[85%] mx-auto">
+      <div className="max-w-[93.5%] mx-auto">
         <div className="mb-8 flex items-center">
           <div className="w-1 h-6 bg-[#a77354] mr-3 rounded-full" />
           <h2 className="text-2xl font-bold text-gray-900">Popular Products</h2>

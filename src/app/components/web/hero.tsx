@@ -7,6 +7,7 @@ export const Hero = () => {
     <section className="min-h-screen bg-background">
       <div className="grid lg:grid-cols-2 min-h-screen">
         {/* Text Content - First on mobile, Right on desktop */}
+
         <div className="flex items-center justify-center px-6 lg:px-12 py-12 lg:py-0 order-1 lg:order-2 min-h-[50vh] lg:min-h-screen">
           <div className="max-w-xl animate-fade-in">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight">
@@ -35,7 +36,6 @@ export const Hero = () => {
           </div>
         </div>
 
-        {/* Image Slider - Second on mobile, Left on desktop */}
         <div className="relative overflow-hidden order-2 lg:order-1 min-h-[50vh] lg:min-h-screen">
           <HeroSlider />
         </div>

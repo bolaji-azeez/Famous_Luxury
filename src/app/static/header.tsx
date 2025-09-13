@@ -108,16 +108,10 @@ const Header: React.FC = () => {
       { name: "Home", path: "/" },
       { name: "Shop", path: "/allproducts" },
       {
-        name: "Watches",
+        name: "Collections",
         dropdown: true,
         dropdownItems: brandDropdownItems,
       },
-      {
-        name: "Glasses",
-        dropdown: true,
-        dropdownItems: brandDropdownItems,
-      },
-     
     ],
     [brandDropdownItems]
   );

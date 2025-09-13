@@ -88,7 +88,7 @@ const NewArrival: FC<NewArrivalProps> = ({ title = "You Might Also Like" }) => {
 
   return (
     <section className="px-4 py-10 md:px-10 w-full mx-auto bg-[#fafbfc]">
-      <div className="max-w-[85%] mx-auto">
+      <div className="max-w-[93.5%] mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div className="mb-8 flex items-center">
             <div className="w-1 h-6 bg-[#a77354] mr-3 rounded-full" />
