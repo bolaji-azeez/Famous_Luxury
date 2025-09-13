@@ -90,7 +90,7 @@ const Header: React.FC = () => {
       path: `/allproducts#${slugifyName(b.name, b._id)}`,
     }));
     // Always append "See all brands"
-    return [...top4, { name: "See all brands →", path: "/allproducts" }];
+    return [...top4, { name: "See all brands", path: "/allproducts" }];
   }, [brands]);
 
   const debounced = useDebouncedValue(searchQuery, 250);
@@ -360,7 +360,6 @@ const Header: React.FC = () => {
           actionItems={actionItems}
           renderNavItem={renderNavItem}
           firstMenuItemRef={firstMenuItemRef}
-          // ✅ add these 3 required props:
           searchQuery={searchQuery}
           onSearchChange={(e) => setSearchQuery(e.target.value)}
           isSearching={searching}

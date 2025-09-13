@@ -1,75 +1,63 @@
 import { useState, useEffect } from "react";
-import heroWatch from "../../../../public/image/hero-collection1.jpeg";
-import heroGlasses from "../../../../public/image/hero-glasses-1.jpeg";
-import heroCollection from "../../../../public/image/hero-watch-.jpeg";
 import Image from "next/image";
+import luxuryWatch1 from '../../../../public/image/download.jpg';
+import luxuryWatch2 from '../../../../public/image/photo-1511499767150-a48a237f0083.jpeg';
+import luxuryWatch3 from '../../../../public/image/photo-1523275335684-37898b6baf30.jpeg';
+import luxuryWatch4 from '../../../../public/image/photo-1509695507497-903c140c43b0.jpeg';
 
-const slides = [
-  {
-    id: 1,
-    image: heroWatch,
-    title: "Luxury Timepieces",
-    subtitle: "Crafted for Excellence"
-  },
-  {
-    id: 2,
-    image: heroGlasses,
-    title: "Designer Eyewear",
-    subtitle: "Style Meets Function"
-  },
-  {
-    id: 3,
-    image: heroCollection,
-    title: "Premium Collection",
-    subtitle: "Curated for You"
-  }
+const luxuryImages = [
+  luxuryWatch1,
+  luxuryWatch2,
+  luxuryWatch3,
+  luxuryWatch4
 ];
 
 export const HeroSlider = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => 
+        prevIndex === luxuryImages.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 4000);
 
-    return () => clearInterval(timer);
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
-      {slides.map((slide, index) => (
+    <div className="relative w-full h-full">
+      {luxuryImages.map((image, index) => (
         <div
-          key={slide.id}
+          key={index}
           className={`absolute inset-0 transition-opacity duration-1000 ${
-            index === currentSlide ? "opacity-100" : "opacity-0"
+            index === currentImageIndex ? 'opacity-100' : 'opacity-0'
           }`}
         >
           <Image
-            src={slide.image}
-            alt={slide.title}
+            src={image}
+            alt={`Luxury timepiece ${index + 1}`}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-overlay" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
         </div>
       ))}
       
-      {/* Slide indicators */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2">
-        {slides.map((_, index) => (
+      {/* Slider indicators */}
+      <div className="absolute bottom-6 left-6 flex space-x-2">
+        {luxuryImages.map((_, index) => (
           <button
             key={index}
-            onClick={() => setCurrentSlide(index)}
+            onClick={() => setCurrentImageIndex(index)}
             className={`w-3 h-3 rounded-full transition-all duration-300 ${
-              index === currentSlide 
-                ? "bg-luxury-gold scale-110" 
-                : "bg-white/50 hover:bg-white/70"
+              index === currentImageIndex 
+                ? 'bg-white scale-110' 
+                : 'bg-white/50 hover:bg-white/70'
             }`}
+            aria-label={`Go to slide ${index + 1}`}
           />
         ))}
       </div>
     </div>
   );
 };
-
-export default HeroSlider;
