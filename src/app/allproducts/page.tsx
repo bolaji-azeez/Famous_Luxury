@@ -10,15 +10,22 @@ import { useGetBrandsQuery } from "@/features/brand/brandApi";
 import { useGetProductsQuery } from "@/features/products/productApi";
 
 // ---- Types ----
-type SortOption = "default" | "price-low" | "price-high" | "name-asc" | "name-desc";
+type SortOption =
+  | "default"
+  | "price-low"
+  | "price-high"
+  | "name-asc"
+  | "name-desc";
 
 type AnyProduct = {
   _id: string;
   name: string;
   price: number;
   image?: string;
-  images?: (string | { url?: string })[]; // widened to support both strings and objects
+  images?: (string | { url?: string })[];
   slug?: string;
+  brand?: string | { _id?: string } | Brand; // 👈 add this
+  brandId?: string; // 👈 and/or this
 };
 
 type Brand = {
@@ -42,8 +49,7 @@ const ProductCardSkeleton = () => (
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     transition={{ duration: 0.5 }}
-    className="border rounded-lg overflow-hidden h-[340px]"
-  >
+    className="border rounded-lg overflow-hidden h-[340px]">
     <div className="aspect-square bg-gray-100 animate-pulse" />
     <div className="p-4 space-y-3">
       <div className="h-5 bg-gray-100 rounded w-4/5 animate-pulse" />
@@ -72,7 +78,9 @@ function AllProductsSection({ sortOption }: { sortOption: SortOption }) {
       const firstImg =
         p.image ||
         (Array.isArray(p.images)
-          ? (typeof p.images[0] === "string" ? p.images[0] : p.images[0]?.url) || ""
+          ? (typeof p.images[0] === "string"
+              ? p.images[0]
+              : p.images[0]?.url) || ""
           : "");
       const slug = p.slug || slugifyName(p.name, p._id);
       return { ...p, image: firstImg, slug };
@@ -123,8 +131,7 @@ function AllProductsSection({ sortOption }: { sortOption: SortOption }) {
                 opacity: 1,
                 transition: { staggerChildren: 0.06, delayChildren: 0.12 },
               },
-            }}
-          >
+            }}>
             {products.slice(0, visibleCount).map((p) => (
               <ProductCard
                 key={p._id}
@@ -147,8 +154,7 @@ function AllProductsSection({ sortOption }: { sortOption: SortOption }) {
             <div className="flex justify-center mt-8">
               <button
                 onClick={() => setVisibleCount(products.length)}
-                className="px-6 py-2 border bg-[#232c3b] border-gray-300 text-sm rounded-md text-white hover:opacity-90 transition-colors"
-              >
+                className="px-6 py-2 border bg-[#232c3b] border-gray-300 text-sm rounded-md text-white hover:opacity-90 transition-colors">
                 See More Products ({products.length - 8})
               </button>
             </div>
@@ -189,24 +195,38 @@ function BrandSection({
     }
   }, [sortOption]);
 
-  const { data: productsRaw = [], isFetching } = useGetProductsQuery({
-    brandId,
-    limit: 100,
-    sort: sortParam,
-  });
+  // 👇 stabilize query args (good for RTKQ cache keys)
+  const queryArg = useMemo(
+    () => ({ brandId, limit: 100, sort: sortParam }),
+    [brandId, sortParam]
+  );
+
+  const { data: productsRaw = [], isFetching } = useGetProductsQuery(queryArg);
 
   const products = useMemo(() => {
     const arr = (productsRaw as AnyProduct[]) ?? [];
-    const normalized = arr.map((p) => ({
+
+    // 👇 filter to this brand even if API returns everything
+    const byBrand = arr.filter((p) => {
+      const pid =
+        p.brandId ?? (typeof p.brand === "string" ? p.brand : p.brand?._id);
+      return pid === brandId;
+    });
+
+    // normalize
+    const normalized = byBrand.map((p) => ({
       ...p,
       image:
         p.image ||
         (Array.isArray(p.images)
-          ? (typeof p.images[0] === "string" ? p.images[0] : p.images[0]?.url) || ""
+          ? (typeof p.images[0] === "string"
+              ? p.images[0]
+              : p.images[0]?.url) || ""
           : ""),
       slug: p.slug || slugifyName(p.name, p._id),
     }));
 
+    // sort
     const sorted = [...normalized];
     switch (sortOption) {
       case "price-low":
@@ -220,7 +240,7 @@ function BrandSection({
       default:
         return sorted;
     }
-  }, [productsRaw, sortOption]);
+  }, [productsRaw, brandId, sortOption]);
 
   const showAll = visibleCount >= products.length;
 
@@ -234,8 +254,7 @@ function BrandSection({
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, margin: "0px 0px -100px 0px" }}
-      transition={{ duration: 0.5 }}
-    >
+      transition={{ duration: 0.5 }}>
       <h2 className="text-xl font-semibold text-gray-800 mb-6">{title}</h2>
 
       {isFetching && products.length === 0 ? (
@@ -259,8 +278,7 @@ function BrandSection({
                 opacity: 1,
                 transition: { staggerChildren: 0.1, delayChildren: 0.2 },
               },
-            }}
-          >
+            }}>
             {products.slice(0, visibleCount).map((p) => (
               <ProductCard
                 key={p._id}
@@ -285,12 +303,10 @@ function BrandSection({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="flex justify-center mt-8"
-            >
+              className="flex justify-center mt-8">
               <button
                 onClick={() => setVisibleCount(products.length)}
-                className="px-6 py-2 border bg-[#232c3b] border-gray-300 text-sm rounded-md text-white hover:opacity-90 transition-colors"
-              >
+                className="px-6 py-2 border bg-[#232c3b] border-gray-300 text-sm rounded-md text-white hover:opacity-90 transition-colors">
                 See More {title} Products ({products.length - 4})
               </button>
             </motion.div>
@@ -303,7 +319,8 @@ function BrandSection({
 
 // ---- Page ----
 export default function BrandSections() {
-  const { data: brandsRaw = [], isLoading: loadingBrands } = useGetBrandsQuery();
+  const { data: brandsRaw = [], isLoading: loadingBrands } =
+    useGetBrandsQuery();
 
   const brands = useMemo(
     () =>
@@ -375,8 +392,7 @@ export default function BrandSections() {
             <select
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value as SortOption)}
-              className="border border-gray-300 rounded-sm px-4 py-2 text-sm text-gray-700"
-            >
+              className="border border-gray-300 rounded-sm px-4 py-2 text-sm text-gray-700">
               <option value="default">Sort by: Default</option>
               <option value="price-low">Price: Low to High</option>
               <option value="price-high">Price: High to Low</option>
@@ -390,9 +406,13 @@ export default function BrandSections() {
         <div className="w-full py-3 px-4 border-t border-gray-200">
           <div className="flex gap-3 overflow-x-auto scrollbar-hide">
             {loadingBrands ? (
-              <div className="w-full text-center py-2 text-gray-500">Loading brands…</div>
+              <div className="w-full text-center py-2 text-gray-500">
+                Loading brands…
+              </div>
             ) : filtered.length === 0 ? (
-              <div className="w-full text-center py-2 text-gray-500">No matching brands</div>
+              <div className="w-full text-center py-2 text-gray-500">
+                No matching brands
+              </div>
             ) : (
               filtered.map((b) => (
                 <button
@@ -402,8 +422,7 @@ export default function BrandSections() {
                     activeSlug === b.slug
                       ? "bg-black text-white"
                       : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
-                  }`}
-                >
+                  }`}>
                   {b.name}
                 </button>
               ))
